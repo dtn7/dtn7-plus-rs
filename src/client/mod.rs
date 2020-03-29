@@ -1,3 +1,17 @@
+//! Simple ways to interact with dtnd
+//!
+//! # Example
+//!
+//! ```
+//! use dtn7_plus::client::DtnClient;
+//!
+//! let client = DtnClient::new();
+//!
+//! let local_node = client.local_node_id()?;
+//! client.register_application_endpoint("incoming")?;
+//!
+//! # Ok::<(), dtn7_plus::client::ClientError>(())
+//! ```
 use bp7::{CreationTimestamp, EndpointID};
 use serde::{Deserialize, Serialize};
 use std::convert::TryInto;
