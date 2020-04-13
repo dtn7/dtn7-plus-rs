@@ -246,3 +246,119 @@ pub fn new_sms(src: u64, dst: u64, msg: &str, compression: bool) -> Result<SMSBu
     Ok(SMSBundle::try_from(bundle::Bundle::new(pblock, cblocks))
         .expect("error creating sms bundle"))
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::sms::{new_sms, SMSBundle};
+    use std::convert::TryFrom;
+    #[test]
+    fn test_sms_new_uncompressed() {
+        let mut sms = new_sms(
+            01239468786,
+            01239468999,
+            "The quick brown fox jumps over the lazy dog",
+            false,
+        )
+        .unwrap();
+        let bin_bundle = sms.to_cbor();
+        dbg!(bin_bundle.len());
+        dbg!(bp7::hexify(&bin_bundle));
+    }
+
+    #[test]
+    fn test_sms_new_compressed() {
+        let mut sms = new_sms(
+            01239468786,
+            01239468999,
+            "The quick brown fox jumps over the lazy dog",
+            true,
+        )
+        .unwrap();
+        let bin_bundle = sms.to_cbor();
+        dbg!(bin_bundle.len());
+        dbg!(bp7::hexify(&bin_bundle));
+
+        assert_eq!(
+            dbg!(sms.msg()),
+            "The quick brown fox jumps over the lazy dog"
+        );
+        assert_eq!(dbg!(sms.src().unwrap()), "1239468786"); // leading zeros are stripped
+        assert_eq!(dbg!(sms.dst().unwrap()), "1239468999");
+        dbg!(sms.creation_timestamp());
+    }
+
+    /*#[test]
+    fn test_bundle_compressed() {
+        let mut sms = new_sms(
+            01239468786,
+            01239468999,
+            "The quick brown fox jumps over the lazy dog",
+            true,
+        )
+        .unwrap();
+        let bin_bundle = sms.to_cbor();
+        let compressed_bundle = loragent::compression::snap_compress(&bin_bundle);
+
+        dbg!(bin_bundle.len());
+        dbg!(compressed_bundle.len());
+
+        dbg!(bp7::hexify(&compressed_bundle));
+    }*/
+
+    #[test]
+    fn test_invalid_bundles() {
+        let sms = new_sms(
+            01239468786,
+            01239468999,
+            "The quick brown fox jumps over the lazy dog",
+            true,
+        )
+        .unwrap();
+        let mut raw_bundle = sms.bundle().clone();
+        //let parsed_bundle = SMSBundle::try_from(raw_bundle);
+        assert!(SMSBundle::try_from(raw_bundle.clone()).is_ok());
+
+        raw_bundle.primary.destination = bp7::EndpointID::none();
+        assert!(SMSBundle::try_from(raw_bundle.clone()).is_err());
+
+        raw_bundle.primary.source = bp7::EndpointID::none();
+        assert!(SMSBundle::try_from(raw_bundle.clone()).is_err());
+
+        /*raw_bundle.primary.destination = bp7::EndpointID::with_dtn("1234567/sms").unwrap();
+        assert!(SMSBundle::try_from(raw_bundle.clone()).is_err());
+
+        raw_bundle.primary.source = bp7::EndpointID::with_dtn("node1/sms").unwrap();
+        assert!(SMSBundle::try_from(raw_bundle.clone()).is_err());*/
+
+        raw_bundle.primary.source = bp7::EndpointID::with_ipn(123, 777).unwrap();
+        assert!(SMSBundle::try_from(raw_bundle.clone()).is_err());
+
+        raw_bundle.primary.destination = bp7::EndpointID::with_ipn(123, 777).unwrap();
+        assert!(SMSBundle::try_from(raw_bundle.clone()).is_err());
+    }
+
+    #[test]
+    fn test_pureness() {
+        let mut sms = new_sms(
+            01239468786,
+            01239468999,
+            "The quick brown fox jumps over the lazy dog",
+            true,
+        )
+        .unwrap();
+        let mut raw_bundle = sms.bundle().clone();
+
+        let smsbundle = SMSBundle::try_from(raw_bundle.clone()).unwrap();
+        assert!(smsbundle.is_pure("ipn"));
+
+        raw_bundle.primary.destination = bp7::EndpointID::with_dtn("1234567/sms").unwrap();
+        let smsbundle = SMSBundle::try_from(raw_bundle.clone()).unwrap();
+
+        assert_eq!(smsbundle.is_pure("ipn"), false);
+
+        raw_bundle.primary.source = bp7::EndpointID::with_dtn("1234567/sms").unwrap();
+        let smsbundle = SMSBundle::try_from(raw_bundle.clone()).unwrap();
+
+        assert!(smsbundle.is_pure("dtn"));
+    }
+}

@@ -28,4 +28,4 @@ serde_bytes = {version = "0.11.3", optional = true }
 client = ["attohttpc"]
 sms = ["serde_cbor", "smaz", "serde_bytes"]
 default = ["sms", "client"]
-# location = ["derive-try-from-primitive", "serde_cbor"]
+location = ["derive-try-from-primitive", "serde_cbor"]
