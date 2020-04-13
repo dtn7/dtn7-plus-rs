@@ -141,6 +141,7 @@ impl SMSBundle {
 pub struct SMS {
     comp: bool,
     enc: bool,
+    #[serde(with = "serde_bytes")]
     msg: Vec<u8>,
     sig: Option<Vec<u8>>,
 }
