@@ -339,7 +339,7 @@ mod tests {
 
     #[test]
     fn test_pureness() {
-        let mut sms = new_sms(
+        let sms = new_sms(
             01239468786,
             01239468999,
             "The quick brown fox jumps over the lazy dog",
