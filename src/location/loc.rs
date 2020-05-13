@@ -8,7 +8,7 @@ use serde::{de, Deserialize, Deserializer, Serialize};
 #[derive(Debug, Clone, PartialEq, TryFromPrimitive)]
 #[repr(u8)]
 enum LocationType {
-    LonLat = 1,
+    LatLon = 1,
     Human = 2,
     WFW = 3,
 }
@@ -18,7 +18,7 @@ enum LocationType {
 #[derive(Debug, Clone, PartialEq)]
 pub enum Location {
     /// GPS coordinates
-    LonLat((f32, f32)),
+    LatLon((f32, f32)),
     /// Human-readable address
     Human(String),
     /// 3 word code geocode: https://3geonames.org/
@@ -32,8 +32,8 @@ impl Serialize for Location {
     {
         let mut seq = serializer.serialize_seq(Some(2))?;
         match self {
-            Location::LonLat(coords) => {
-                seq.serialize_element(&(LocationType::LonLat as u8))?;
+            Location::LatLon(coords) => {
+                seq.serialize_element(&(LocationType::LatLon as u8))?;
                 seq.serialize_element(&coords)?;
             }
             Location::Human(address) => {
@@ -77,11 +77,11 @@ impl<'de> Deserialize<'de> for Location {
                     )
                 })?;
                 match loc {
-                    LocationType::LonLat => {
+                    LocationType::LatLon => {
                         let coords: (f32, f32) = seq
                             .next_element()?
                             .ok_or_else(|| de::Error::invalid_length(1, &self))?;
-                        Ok(Location::LonLat(coords))
+                        Ok(Location::LatLon(coords))
                     }
                     LocationType::Human => {
                         let address: String = seq
@@ -108,7 +108,7 @@ mod tests {
     use crate::location::Location;
     #[test]
     fn test_loc_lonlat_roundtrip() {
-        let loc = Location::LonLat((23.0, 42.0));
+        let loc = Location::LatLon((23.0, 42.0));
         let buf = serde_cbor::to_vec(&loc).unwrap();
         let loc2 = serde_cbor::from_slice(&buf).unwrap();
         assert_eq!(loc, loc2);

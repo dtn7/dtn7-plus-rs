@@ -53,7 +53,7 @@ impl Serialize for LocationBlockData {
             LocationBlockData::Position(info, coords) => {
                 let mut seq = serializer.serialize_seq(Some(3))?;
                 seq.serialize_element(&(LocationBlockType::Position as u8))?;
-                seq.serialize_element(&info)?;
+                seq.serialize_element(&info.bits())?;
                 seq.serialize_element(&coords)?;
                 seq.end()
             }
@@ -75,7 +75,7 @@ impl Serialize for LocationBlockData {
             LocationBlockData::Trace(info, node, coords) => {
                 let mut seq = serializer.serialize_seq(Some(4))?;
                 seq.serialize_element(&(LocationBlockType::Trace as u8))?;
-                seq.serialize_element(&info)?;
+                seq.serialize_element(&info.bits())?;
                 seq.serialize_element(&node)?;
                 seq.serialize_element(&coords)?;
                 seq.end()
@@ -112,9 +112,11 @@ impl<'de> Deserialize<'de> for LocationBlockData {
                 })?;
                 match loc {
                     LocationBlockType::Position => {
-                        let info: NodeTypeFlags = seq
-                            .next_element()?
-                            .ok_or_else(|| de::Error::invalid_length(1, &self))?;
+                        let info: NodeTypeFlags = NodeTypeFlags::from_bits(
+                            seq.next_element()?
+                                .ok_or_else(|| de::Error::invalid_length(1, &self))?,
+                        )
+                        .unwrap_or_default();
                         let coords: Location = seq
                             .next_element()?
                             .ok_or_else(|| de::Error::invalid_length(2, &self))?;
@@ -143,9 +145,11 @@ impl<'de> Deserialize<'de> for LocationBlockData {
                         Ok(LocationBlockData::FenceRect(topleft, bottomright))
                     }
                     LocationBlockType::Trace => {
-                        let info: NodeTypeFlags = seq
-                            .next_element()?
-                            .ok_or_else(|| de::Error::invalid_length(1, &self))?;
+                        let info: NodeTypeFlags = NodeTypeFlags::from_bits(
+                            seq.next_element()?
+                                .ok_or_else(|| de::Error::invalid_length(1, &self))?,
+                        )
+                        .unwrap_or_default();
                         let node: EndpointID = seq
                             .next_element()?
                             .ok_or_else(|| de::Error::invalid_length(2, &self))?;
@@ -196,7 +200,7 @@ mod tests {
 
     #[test]
     fn test_locblock_data_position_roundtrip() {
-        let loc = Location::LonLat((23.0, 42.0));
+        let loc = Location::LatLon((23.0, 42.0));
         let data = LocationBlockData::Position(NodeTypeFlags::MOBILE, loc);
         let buf = serde_cbor::to_vec(&data).unwrap();
         let data2 = serde_cbor::from_slice(&buf).unwrap();
@@ -205,7 +209,7 @@ mod tests {
 
     #[test]
     fn test_locblock_data_fence_ellipse_roundtrip() {
-        let loc = Location::LonLat((23.0, 42.0));
+        let loc = Location::LatLon((23.0, 42.0));
         let data = LocationBlockData::FenceEllipse(loc, 10, 5);
         let buf = serde_cbor::to_vec(&data).unwrap();
         let data2 = serde_cbor::from_slice(&buf).unwrap();
@@ -214,8 +218,8 @@ mod tests {
 
     #[test]
     fn test_locblock_data_fence_rect_roundtrip() {
-        let loc = Location::LonLat((23.0, 42.0));
-        let loc2 = Location::LonLat((42.0, 66.0));
+        let loc = Location::LatLon((23.0, 42.0));
+        let loc2 = Location::LatLon((42.0, 66.0));
         let data = LocationBlockData::FenceRect(loc, loc2);
         let buf = serde_cbor::to_vec(&data).unwrap();
         let data2 = serde_cbor::from_slice(&buf).unwrap();
@@ -223,7 +227,7 @@ mod tests {
     }
     #[test]
     fn test_locblock_data_trace_roundtrip() {
-        let loc = Location::LonLat((23.0, 42.0));
+        let loc = Location::LatLon((23.0, 42.0));
         let data = LocationBlockData::Trace(
             NodeTypeFlags::MOBILE,
             EndpointID::try_from("dtn://node1").unwrap(),
@@ -236,7 +240,7 @@ mod tests {
 
     #[test]
     fn test_cblock_location_roundtrip() {
-        let loc = Location::LonLat((23.0, 42.0));
+        let loc = Location::LatLon((23.0, 42.0));
         let data = LocationBlockData::Position(NodeTypeFlags::MOBILE, loc);
 
         let cblock = new_location_block(1, data.clone());

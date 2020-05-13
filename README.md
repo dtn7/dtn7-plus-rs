@@ -7,3 +7,18 @@
 
 This library contains various additions to `bp7` and `dtn7` such as a client library and custom canonical blocks.
 
+## DTN Client
+
+## SMS Bundles
+
+## Location Canonical Blocks
+
+### Dependencies for Example Node-Red Flow
+
+```
+npm i node-red-dashboard
+npm i node-red-node-ui-list
+npm i node-red-contrib-web-worldmap
+```
+
+The flow itself can be found in `extra/dtnmap.json`
