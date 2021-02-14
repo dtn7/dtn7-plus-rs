@@ -103,3 +103,14 @@ pub struct WsSendData {
     pub lifetime: Duration,
     pub data: Vec<u8>,
 }
+
+/// Received bundle payload with meta data
+///
+/// To be used via WebSocket connection.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct WsRecvData {
+    pub bid: String,
+    pub src: EndpointID,
+    pub dst: EndpointID,
+    pub data: Vec<u8>,
+}
