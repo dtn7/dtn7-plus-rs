@@ -15,7 +15,6 @@
 use bp7::{CreationTimestamp, EndpointID};
 use serde::{Deserialize, Serialize};
 use std::convert::TryInto;
-use std::time::Duration;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -97,10 +96,15 @@ impl DtnClient {
 /// To be used via WebSocket connection.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct WsSendData {
-    pub src: EndpointID,
-    pub dst: EndpointID,
+    /// source with a dtn URI scheme, e.g. dtn://node1 or ipn://23.0
+    pub src: String,
+    /// destination with a dtn URI scheme, e.g. dtn://node1/sms or ipn://23.42/
+    pub dst: String,
+    /// turn on delivery notifications
     pub delivery_notification: bool,
-    pub lifetime: Duration,
+    /// lifetime for bundle in milliseconds
+    pub lifetime: u64,
+    /// payload data
     pub data: Vec<u8>,
 }
 
@@ -108,9 +112,9 @@ pub struct WsSendData {
 ///
 /// To be used via WebSocket connection.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct WsRecvData {
-    pub bid: String,
-    pub src: EndpointID,
-    pub dst: EndpointID,
-    pub data: Vec<u8>,
+pub struct WsRecvData<'a> {
+    pub bid: &'a str,
+    pub src: &'a str,
+    pub dst: &'a str,
+    pub data: &'a [u8],
 }
