@@ -95,17 +95,18 @@ impl DtnClient {
 ///
 /// To be used via WebSocket connection.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct WsSendData {
+pub struct WsSendData<'a> {
     /// source with a dtn URI scheme, e.g. dtn://node1 or ipn://23.0
-    pub src: String,
+    pub src: &'a str,
     /// destination with a dtn URI scheme, e.g. dtn://node1/sms or ipn://23.42/
-    pub dst: String,
+    pub dst: &'a str,
     /// turn on delivery notifications
     pub delivery_notification: bool,
     /// lifetime for bundle in milliseconds
     pub lifetime: u64,
     /// payload data
-    pub data: Vec<u8>,
+    #[serde(with = "serde_bytes")]
+    pub data: &'a [u8],
 }
 
 /// Received bundle payload with meta data
@@ -116,5 +117,6 @@ pub struct WsRecvData<'a> {
     pub bid: &'a str,
     pub src: &'a str,
     pub dst: &'a str,
+    #[serde(with = "serde_bytes")]
     pub data: &'a [u8],
 }

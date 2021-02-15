@@ -1,6 +1,6 @@
 [package]
 name = "dtn7-plus"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Lars Baumgaertner <baumgaertner@cs.tu-darmstadt.de>"]
 description = "Additional helpers for rust dtn daemon"
 edition = "2018"
@@ -32,7 +32,7 @@ url = { version = "2.2.0", optional = true }
 
 
 [features]
-client = ["attohttpc"]
+client = ["attohttpc", "serde_bytes"]
 sms = ["serde_cbor", "smaz", "serde_bytes"]
 default = ["sms", "client", "location", "cli"]
 location = ["derive-try-from-primitive", "serde_cbor", "bitflags"]
