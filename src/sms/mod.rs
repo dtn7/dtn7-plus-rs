@@ -59,7 +59,7 @@ impl SMSBundle {
                 }
             }
             EndpointID::Dtn(_, ssp) => {
-                if ssp.ends_with("/sms") {
+                if ssp.service_name() == Some("sms") {
                     Ok(())
                 } else {
                     Err(SmsError::InvalidEndpoint)
@@ -351,12 +351,12 @@ mod tests {
         let smsbundle = SMSBundle::try_from(raw_bundle.clone()).unwrap();
         assert!(smsbundle.is_pure("ipn"));
 
-        raw_bundle.primary.destination = bp7::EndpointID::with_dtn("1234567/sms").unwrap();
+        raw_bundle.primary.destination = bp7::EndpointID::try_from("dtn://1234567/sms").unwrap();
         let smsbundle = SMSBundle::try_from(raw_bundle.clone()).unwrap();
 
         assert_eq!(smsbundle.is_pure("ipn"), false);
 
-        raw_bundle.primary.source = bp7::EndpointID::with_dtn("1234567/sms").unwrap();
+        raw_bundle.primary.source = bp7::EndpointID::try_from("dtn://1234567/sms").unwrap();
         let smsbundle = SMSBundle::try_from(raw_bundle.clone()).unwrap();
 
         assert!(smsbundle.is_pure("dtn"));
