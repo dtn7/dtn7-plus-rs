@@ -16,7 +16,7 @@ use bp7::{CreationTimestamp, EndpointID};
 use serde::{Deserialize, Serialize};
 use std::convert::TryInto;
 use thiserror::Error;
-use tungstenite::{client::AutoStream, connect, WebSocket};
+use tungstenite::{client, client::AutoStream, connect, WebSocket};
 
 pub use tungstenite::protocol::Message;
 
@@ -100,7 +100,19 @@ impl DtnClient {
         let (socket, _) = connect(&ws_url)?;
         Ok(DtnWsConnection { socket })
     }
+
+    /// Constructs a new websocket connection to the configured dtn7 client using a custom stream
+    pub fn ws_custom<Stream: std::io::Read + std::io::Write>(
+        &self,
+        stream: Stream,
+    ) -> anyhow::Result<CustomDtnWsConnection<Stream>> {
+        let ws_url = url::Url::parse(&format!("ws://{}:{}/ws", self.localhost, self.port))
+            .expect("Error constructing websocket url!");
+        let (socket, _) = client(&ws_url, stream).expect("Error constructing websocket!");
+        Ok(CustomDtnWsConnection { socket })
+    }
 }
+
 pub struct DtnWsConnection {
     socket: WebSocket<AutoStream>,
 }
@@ -152,6 +164,60 @@ impl DtnWsConnection {
         }
     }
 }
+
+// Custom version for backwards compatiblity (because of generics)
+pub struct CustomDtnWsConnection<Stream: std::io::Read + std::io::Write> {
+    socket: WebSocket<Stream>,
+}
+
+impl<Stream: std::io::Read + std::io::Write> CustomDtnWsConnection<Stream> {
+    /// Send a text message via websocket
+    ///
+    /// accepted commands:
+    /// `/data`
+    /// `/bundle`
+    /// `/subscribe <service>`
+    pub fn write_text(&mut self, txt: &str) -> anyhow::Result<()> {
+        self.socket.write_message(Message::text(txt))?;
+        Ok(())
+    }
+    /// Send a binary message via websocket
+    ///
+    /// Server expects either
+    /// - a valid bundle (in bundle mode)
+    /// - a WsSendData struct as a cbor buffer (in data mode)
+    pub fn write_binary(&mut self, bin: &[u8]) -> anyhow::Result<()> {
+        self.socket.write_message(Message::binary(bin))?;
+        Ok(())
+    }
+
+    /// Read the next message
+    ///
+    /// Could be text, binary, ping, etc etc
+    pub fn read_message(&mut self) -> anyhow::Result<Message> {
+        Ok(self.socket.read_message()?)
+    }
+
+    /// Expect a text message next, returning an error on any other message type
+    pub fn read_text(&mut self) -> anyhow::Result<String> {
+        let msg = self.socket.read_message()?;
+        if let Message::Text(txt) = msg {
+            Ok(txt)
+        } else {
+            anyhow::bail!("Unexpected message type");
+        }
+    }
+    /// Expect a binary message next, returning an error on any other message type
+    pub fn read_binary(&mut self) -> anyhow::Result<Vec<u8>> {
+        let msg = self.socket.read_message()?;
+        if let Message::Binary(bin) = msg {
+            Ok(bin)
+        } else {
+            anyhow::bail!("Unexpected message type");
+        }
+    }
+}
+
 /// Let server construct a new bundle from the provided data
 ///
 /// To be used via WebSocket connection.
