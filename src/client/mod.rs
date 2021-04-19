@@ -16,7 +16,7 @@ use bp7::{CreationTimestamp, EndpointID};
 use serde::{Deserialize, Serialize};
 use std::convert::TryInto;
 use thiserror::Error;
-use tungstenite::{client::AutoStream, connect, WebSocket};
+use tungstenite::{client, WebSocket};
 
 pub use tungstenite::protocol::Message;
 
@@ -94,18 +94,34 @@ impl DtnClient {
     }
 
     /// Constructs a new websocket connection to the configured dtn7 client
-    pub fn ws(&self) -> anyhow::Result<DtnWsConnection> {
+    pub fn ws(&self) -> anyhow::Result<DtnWsConnection<std::net::TcpStream>> {
+        let stream = std::net::TcpStream::connect(&format!("{}:{}", self.localhost, self.port))?;
+        let ws = self.ws_custom(stream)?;
+        Ok(ws)
+    }
+
+    /// Constructs a new websocket connection to the configured dtn7 client using a custom Stream
+    pub fn ws_custom<Stream>(&self, stream: Stream) -> anyhow::Result<DtnWsConnection<Stream>>
+    where
+        Stream: std::io::Read + std::io::Write,
+    {
         let ws_url = url::Url::parse(&format!("ws://{}:{}/ws", self.localhost, self.port))
             .expect("Error constructing websocket url!");
-        let (socket, _) = connect(&ws_url)?;
+        let (socket, _) = client(&ws_url, stream).expect("Error constructing websocket!");
         Ok(DtnWsConnection { socket })
     }
 }
-pub struct DtnWsConnection {
-    socket: WebSocket<AutoStream>,
+pub struct DtnWsConnection<Stream>
+where
+    Stream: std::io::Read + std::io::Write,
+{
+    socket: WebSocket<Stream>,
 }
 
-impl DtnWsConnection {
+impl<Stream> DtnWsConnection<Stream>
+where
+    Stream: std::io::Read + std::io::Write,
+{
     /// Send a text message via websocket
     ///
     /// accepted commands:
