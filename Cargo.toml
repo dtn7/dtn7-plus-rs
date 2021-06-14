@@ -1,6 +1,6 @@
 [package]
 name = "dtn7-plus"
-version = "0.4.3"
+version = "0.4.4"
 authors = ["Lars Baumgaertner <baumgaertner@cs.tu-darmstadt.de>"]
 description = "Additional helpers for rust dtn daemon"
 edition = "2018"
@@ -34,7 +34,7 @@ uuid = { version = "0.8", features = ["serde", "v4"], optional = true }
 
 
 [features]
-client = ["attohttpc", "tungstenite", "anyhow", "common"]
+client = ["attohttpc", "tungstenite", "anyhow", "common", "url"]
 sms = ["smaz", "common"]
 news = ["smaz", "common", "uuid"]
 common = ["serde_bytes", "serde_cbor"]
