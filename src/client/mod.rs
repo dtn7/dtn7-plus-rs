@@ -167,6 +167,11 @@ where
             anyhow::bail!("Unexpected message type");
         }
     }
+
+    /// Returns internally used websocket connection
+    pub fn get_inner_socket(&mut self) -> &WebSocket<Stream> {
+        return &mut self.socket;
+    }
 }
 /// Let server construct a new bundle from the provided data
 ///
