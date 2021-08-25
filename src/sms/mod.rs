@@ -1,3 +1,4 @@
+use bp7::flags::BlockControlFlags;
 use bp7::*;
 use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
@@ -239,7 +240,7 @@ pub fn new_sms(src: u64, dst: u64, msg: &str, compression: bool) -> Result<SMSBu
         .message(msg)
         .build()?;
     let cblocks = vec![canonical::new_payload_block(
-        0,
+        BlockControlFlags::empty(),
         serde_cbor::to_vec(&payload).expect("Fatal failure, could not convert sms payload to CBOR"),
     )];
 

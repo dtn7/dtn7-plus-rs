@@ -11,6 +11,8 @@ This library contains various additions to `bp7` and `dtn7` such as a client lib
 
 ## SMS Bundles
 
+## News Bundles
+
 ## Location Canonical Blocks
 
 ### Dependencies for Example Node-Red Flow

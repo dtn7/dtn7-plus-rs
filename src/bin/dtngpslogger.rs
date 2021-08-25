@@ -1,5 +1,6 @@
 use anyhow::Result;
 use bp7::bundle::*;
+use bp7::flags::{BundleControlFlags, BundleValidation};
 use bp7::*;
 use clap::{crate_authors, crate_version, App, Arg};
 use dtn7_plus::client::DtnClient;
@@ -192,8 +193,10 @@ fn main() -> Result<()> {
             .expect("error getting creation timestamp from local dtnd");
 
         let mut bndl = new_std_payload_bundle(sender.clone(), receiver.clone(), vec![]);
-        bndl.primary.bundle_control_flags =
-            BUNDLE_MUST_NOT_FRAGMENTED | BUNDLE_STATUS_REQUEST_DELIVERY;
+        bndl.primary.bundle_control_flags.set(
+            BundleControlFlags::BUNDLE_MUST_NOT_FRAGMENTED
+                | BundleControlFlags::BUNDLE_STATUS_REQUEST_DELIVERY,
+        );
         bndl.primary.creation_timestamp = cts;
         bndl.primary.lifetime = std::time::Duration::from_secs(lifetime);
 

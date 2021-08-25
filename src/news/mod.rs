@@ -1,3 +1,4 @@
+use bp7::flags::BlockControlFlags;
 use bp7::*;
 use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
@@ -326,7 +327,7 @@ pub fn new_news(
         .tags(tags)
         .build()?;
     let cblocks = vec![canonical::new_payload_block(
-        0,
+        BlockControlFlags::empty(),
         serde_cbor::to_vec(&payload)
             .expect("Fatal failure, could not convert news payload to CBOR"),
     )];
