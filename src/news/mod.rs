@@ -99,7 +99,7 @@ impl NewsBundle {
 
         // Validate general payload
         let payload = self.0.payload().ok_or(NewsError::PayloadMissing)?;
-        let news: News = serde_cbor::from_slice(&payload)?;
+        let news: News = serde_cbor::from_slice(payload)?;
 
         // Validate payload message and compression
         if news.comp {
@@ -139,7 +139,7 @@ impl NewsBundle {
     pub fn news(&self) -> News {
         let payload = self.0.payload().expect("missing payload in bundle");
 
-        serde_cbor::from_slice(&payload).expect("error decoding news payload")
+        serde_cbor::from_slice(payload).expect("error decoding news payload")
     }
     pub fn compression(&self) -> bool {
         self.news().compression()

@@ -335,7 +335,7 @@ mod tests {
         assert!(SMSBundle::try_from(raw_bundle.clone()).is_err());
 
         raw_bundle.primary.destination = bp7::EndpointID::with_ipn(123, 777).unwrap();
-        assert!(SMSBundle::try_from(raw_bundle.clone()).is_err());
+        assert!(SMSBundle::try_from(raw_bundle).is_err());
     }
 
     #[test]
@@ -355,10 +355,10 @@ mod tests {
         raw_bundle.primary.destination = bp7::EndpointID::try_from("dtn://1234567/sms").unwrap();
         let smsbundle = SMSBundle::try_from(raw_bundle.clone()).unwrap();
 
-        assert_eq!(smsbundle.is_pure("ipn"), false);
+        assert!(!smsbundle.is_pure("ipn"));
 
         raw_bundle.primary.source = bp7::EndpointID::try_from("dtn://1234567/sms").unwrap();
-        let smsbundle = SMSBundle::try_from(raw_bundle.clone()).unwrap();
+        let smsbundle = SMSBundle::try_from(raw_bundle).unwrap();
 
         assert!(smsbundle.is_pure("dtn"));
     }

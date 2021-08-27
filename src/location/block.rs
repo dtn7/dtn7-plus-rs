@@ -178,9 +178,7 @@ pub fn new_location_block(block_number: u64, data: LocationBlockData) -> Canonic
 pub fn get_location_data(cblock: &CanonicalBlock) -> Result<LocationBlockData, LocationError> {
     if cblock.block_type == LOCATION_BLOCK {
         if let CanonicalData::Unknown(data) = cblock.data() {
-            let loc_data =
-                serde_cbor::from_slice(data).map_err(|_err| LocationError::InvalidLocationBlock);
-            loc_data
+            serde_cbor::from_slice(data).map_err(|_err| LocationError::InvalidLocationBlock)
         } else {
             Err(LocationError::InvalidLocationBlock)
         }

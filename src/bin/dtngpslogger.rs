@@ -13,7 +13,7 @@ fn read_pos_from_file(filename: &str) -> Result<Location> {
     let contents = fs::read_to_string(filename)?;
     let coords: Vec<f32> = contents
         .trim()
-        .split(",")
+        .split(',')
         .map(|c| c.parse().unwrap())
         .collect();
     Ok(Location::LatLon((coords[0], coords[1])))
