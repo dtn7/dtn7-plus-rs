@@ -36,41 +36,41 @@ fn main() -> anyhow::Result<()> {
         .author(crate_authors!())
         .about("A simple Bundle Protocol 7 GPS Receiver Utility for Delay Tolerant Networking")
         .arg(
-            Arg::with_name("endpoint")
-                .short("e")
+            Arg::new("endpoint")
+                .short('e')
                 .long("endpoint")
                 .value_name("ENDPOINT")
-                .help("Specify local endpoint, e.g. '/incoming', or a group endpoint 'dtn://helpers/incoming'")
+                .about("Specify local endpoint, e.g. '/incoming', or a group endpoint 'dtn://helpers/incoming'")
                 .takes_value(true),
         )
         .arg(
-            Arg::with_name("port")
-                .short("p")
+            Arg::new("port")
+                .short('p')
                 .long("port")
                 .value_name("PORT")
-                .help("Local web port (default = 3000)")
+                .about("Local web port (default = 3000)")
                 .required(false)
                 .takes_value(true),
         )        
         .arg(
-            Arg::with_name("verbose")
-                .short("v")
+            Arg::new("verbose")
+                .short('v')
                 .long("verbose")
-                .help("verbose output")
+                .about("verbose output")
                 .takes_value(false),
         )
         .arg(
-            Arg::with_name("ipv6")
-                .short("6")
+            Arg::new("ipv6")
+                .short('6')
                 .long("ipv6")
-                .help("Use IPv6")
+                .about("Use IPv6")
                 .takes_value(false),
         )
         .arg(
-            Arg::with_name("rest")
-                .short("r")
+            Arg::new("rest")
+                .short('r')
                 .long("rest")
-                .help("Rest endpoint to dump incoming location data, e.g., http://127.0.0.1:1880/dtnpos")
+                .about("Rest endpoint to dump incoming location data, e.g., http://127.0.0.1:1880/dtnpos")
                 .takes_value(true),
         )
         .get_matches();

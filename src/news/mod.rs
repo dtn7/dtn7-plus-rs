@@ -1,3 +1,4 @@
+/// This protocol is inspired by the net news format ([RFC](https://datatracker.ietf.org/doc/html/rfc5536))
 use bp7::flags::BlockControlFlags;
 use bp7::*;
 use serde::{Deserialize, Serialize};
@@ -5,9 +6,10 @@ use std::convert::TryFrom;
 use std::time::Duration;
 use thiserror::Error;
 use uuid::Uuid;
-
 #[derive(Error, Debug)]
 pub enum NewsError {
+    #[error("bundle decoding error: {0}")]
+    BundleDecoding(#[from] bp7::error::Error),
     #[error("message not utf8: {0}")]
     NonUtf8(#[from] std::string::FromUtf8Error),
     #[error("serde cbor error: {0}")]
@@ -51,6 +53,20 @@ impl TryFrom<Bundle> for NewsBundle {
         }
     }
 }
+impl TryFrom<Vec<u8>> for NewsBundle {
+    type Error = NewsError;
+
+    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
+        let bundle = Bundle::try_from(value.to_vec())?;
+        let news_bundle = NewsBundle(bundle);
+        if news_bundle.is_valid().is_err() {
+            Err(NewsError::InvalidNewsBundle)
+        } else {
+            Ok(news_bundle)
+        }
+    }
+}
+
 enum EIDType {
     Src,
     Dst,
@@ -153,6 +169,18 @@ impl NewsBundle {
     pub fn msg(&self) -> String {
         self.news().msg()
     }
+    pub fn topic(&self) -> String {
+        self.news().topic()
+    }
+    pub fn tid(&self) -> Uuid {
+        self.news().thread_id()
+    }
+    pub fn references(&self) -> Option<String> {
+        self.news().references()
+    }
+    pub fn tags(&self) -> Vec<String> {
+        self.news().tags().to_vec()
+    }
     pub fn bundle(&self) -> &Bundle {
         &self.0
     }
@@ -169,6 +197,7 @@ pub struct News {
     #[serde(with = "serde_bytes")]
     topic: Vec<u8>,
     tid: Uuid,
+    references: Option<String>,
     tags: Vec<String>,
     #[serde(with = "serde_bytes")]
     msg: Vec<u8>,
@@ -181,6 +210,9 @@ impl News {
     }
     pub fn encryption(&self) -> bool {
         self.enc
+    }
+    pub fn references(&self) -> Option<String> {
+        self.references.clone()
     }
     pub fn signature(&self) -> Option<Vec<u8>> {
         if let Some(sig) = self.sig.clone() {
@@ -220,6 +252,7 @@ pub struct NewsBuilder {
     enc: bool,
     topic: Option<String>,
     thread_id: Option<Uuid>,
+    references: Option<String>,
     tags: Vec<String>,
     msg: Option<String>,
     sig: Option<Vec<u8>>,
@@ -232,10 +265,18 @@ impl NewsBuilder {
             enc: false,
             topic: None,
             thread_id: None,
+            references: None,
             tags: vec![],
             msg: None,
             sig: None,
         }
+    }
+    pub fn reply_to(mut self, news: &NewsBundle) -> Self {
+        self.references = Some(news.id());
+        self.thread_id = Some(news.tid());
+        self.tags = news.tags();
+        self.topic = Some(news.topic());
+        self
     }
     pub fn compression(mut self, comp: bool) -> Self {
         self.comp = comp;
@@ -255,6 +296,10 @@ impl NewsBuilder {
     }
     pub fn thread_id(mut self, tid: Uuid) -> Self {
         self.thread_id = Some(tid);
+        self
+    }
+    pub fn references(mut self, bid: &str) -> Self {
+        self.references = Some(bid.into());
         self
     }
     pub fn tag(mut self, tag: &str) -> Self {
@@ -284,6 +329,7 @@ impl NewsBuilder {
                 } else {
                     Uuid::new_v4()
                 },
+                references: self.references,
                 tags: self.tags,
                 msg: if self.comp {
                     smaz_compress(msg.as_bytes())
@@ -297,12 +343,19 @@ impl NewsBuilder {
         }
     }
 }
+
+impl Default for NewsBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 /// Create a new news bundle for DTN addressing scheme
 pub fn new_news(
     src_node_name: &str,
     dst_newsgroup: &str,
     topic: &str,
     thread_id: Option<Uuid>,
+    references: Option<String>,
     msg: &str,
     tags: Vec<String>,
     compression: bool,
@@ -324,8 +377,46 @@ pub fn new_news(
         .message(msg)
         .topic(topic)
         .thread_id(thread_id.unwrap_or(Uuid::new_v4()))
-        .tags(tags)
+        .tags(tags);
+    let payload = if let Some(referece) = references {
+        payload.references(&referece).build()?
+    } else {
+        payload.build()?
+    };
+    let cblocks = vec![canonical::new_payload_block(
+        BlockControlFlags::empty(),
+        serde_cbor::to_vec(&payload)
+            .expect("Fatal failure, could not convert news payload to CBOR"),
+    )];
+
+    Ok(NewsBundle::try_from(bundle::Bundle::new(pblock, cblocks))
+        .expect("error creating news bundle"))
+}
+
+/// Create a new news bundle for DTN addressing scheme
+pub fn reply_news(
+    parent_post: &NewsBundle,
+    src_node_name: &str,
+    msg: &str,
+    compression: bool,
+) -> Result<NewsBundle, NewsError> {
+    let src_eid = EndpointID::with_dtn(&format!("//{}/sms", src_node_name))?;
+
+    let pblock = primary::PrimaryBlockBuilder::default()
+        .destination(parent_post.bundle().primary.destination.clone())
+        .source(src_eid)
+        .report_to(EndpointID::none())
+        .creation_timestamp(CreationTimestamp::now())
+        .lifetime(Duration::from_secs(60 * 60))
+        .build()
+        .unwrap();
+
+    let payload = NewsBuilder::new()
+        .compression(compression)
+        .message(msg)
+        .reply_to(parent_post)
         .build()?;
+
     let cblocks = vec![canonical::new_payload_block(
         BlockControlFlags::empty(),
         serde_cbor::to_vec(&payload)
@@ -340,12 +431,15 @@ pub fn new_news(
 mod tests {
     use crate::news::{new_news, NewsBundle};
     use std::convert::TryFrom;
+
+    use super::reply_news;
     #[test]
     fn test_news_new_uncompressed() {
         let mut news = new_news(
             "node1",
             "de.hessen.darmstadt",
             "Lorem ipsum dolor sit amet",
+            None,
             None,
             "The quick brown fox jumps over the lazy dog",
             Vec::new(),
@@ -363,6 +457,7 @@ mod tests {
             "node1",
             "de.hessen.darmstadt",
             "Lorem ipsum dolor sit amet",
+            None,
             None,
             "The quick brown fox jumps over the lazy dog",
             Vec::new(),
@@ -407,6 +502,7 @@ mod tests {
             "de.hessen.darmstadt",
             "Lorem ipsum dolor sit amet",
             None,
+            None,
             "The quick brown fox jumps over the lazy dog",
             Vec::new(),
             false,
@@ -433,5 +529,27 @@ mod tests {
 
         raw_bundle.primary.destination = bp7::EndpointID::with_ipn(123, 777).unwrap();
         assert!(NewsBundle::try_from(raw_bundle.clone()).is_err());
+    }
+
+    #[test]
+    fn test_news_reply() {
+        let news1 = new_news(
+            "node1",
+            "de.hessen.darmstadt",
+            "Lorem ipsum dolor sit amet",
+            None,
+            None,
+            "The quick brown fox jumps over the lazy dog",
+            Vec::new(),
+            false,
+        )
+        .unwrap();
+
+        let news2 = reply_news(&news1, "node2", "just a reply", true).unwrap();
+        assert_eq!(news1.topic(), news2.topic());
+        assert_eq!(news1.tid(), news2.tid());
+        assert_eq!(news1.tags(), news2.tags());
+        assert_eq!(Some(news1.id()), news2.references());
+        assert_ne!(news1.msg(), news2.msg());
     }
 }
