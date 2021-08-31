@@ -1,6 +1,7 @@
 /// This protocol is inspired by the net news format ([RFC](https://datatracker.ietf.org/doc/html/rfc5536))
 use bp7::flags::BlockControlFlags;
 use bp7::*;
+use core::fmt;
 use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
 use std::time::Duration;
@@ -67,6 +68,19 @@ impl TryFrom<Vec<u8>> for NewsBundle {
     }
 }
 
+impl fmt::Display for NewsBundle {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "ID: {}", self.id())?;
+        writeln!(f, "From: {}", self.src().unwrap_or_default())?;
+        writeln!(f, "To: {}", self.dst().unwrap_or_default())?;
+        writeln!(f, "Creation TS: {}", self.creation_timestamp())?;
+        writeln!(f, "Thread ID: {}", self.tid())?;
+        writeln!(f, "References: {:?}", self.references())?;
+        writeln!(f, "Tags: {:?}", self.tags())?;
+        writeln!(f, "Topic: {}", self.topic())?;
+        writeln!(f, "\n{}", self.msg())
+    }
+}
 enum EIDType {
     Src,
     Dst,

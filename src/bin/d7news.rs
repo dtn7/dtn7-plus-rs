@@ -146,15 +146,7 @@ fn cmd_read(opts: ReadCmd, log_level: i32) -> Result<()> {
         raw_bytes
     };
     let news = NewsBundle::try_from(bytes)?;
-    println!("ID: {}", news.id());
-    println!("From: {}", news.src().unwrap_or_default());
-    println!("To: {}", news.dst().unwrap_or_default());
-    println!("Creation TS: {}", news.creation_timestamp());
-    println!("Thread ID: {}", news.tid());
-    println!("References: {:?}", news.references());
-    println!("Tags: {:?}", news.tags());
-    println!("Topic: {}", news.topic());
-    println!("Message:\n{}", news.msg());
+    println!("{}", news);
     Ok(())
 }
 
