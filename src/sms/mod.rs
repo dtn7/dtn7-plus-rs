@@ -60,7 +60,7 @@ impl SMSBundle {
                 }
             }
             EndpointID::Dtn(_, ssp) => {
-                if ssp.service_name() == Some("sms") {
+                if ssp.service_name() == Some("sms") || ssp.service_name() == Some("~sms") {
                     Ok(())
                 } else {
                     Err(SmsError::InvalidEndpoint)
@@ -73,9 +73,12 @@ impl SMSBundle {
         self.is_eid_valid(&self.0.primary.source)?;
         self.is_eid_valid(&self.0.primary.destination)?;
 
+        if self.0.primary.source.is_non_singleton() {
+            return Err(SmsError::InvalidEndpoint);
+        }
         // Validate general payload
         let payload = self.0.payload().ok_or(SmsError::PayloadMissing)?;
-        let sms: SMS = serde_cbor::from_slice(&payload)?;
+        let sms: SMS = serde_cbor::from_slice(payload)?;
 
         // Validate payload message and compression
         if sms.comp {
