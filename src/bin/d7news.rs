@@ -4,13 +4,11 @@ use std::{
 };
 
 use anyhow::Result;
-use bp7::Bundle;
-use clap::{crate_authors, crate_version, AppSettings, Clap};
+use clap::{crate_authors, crate_version, Parser};
 use dtn7_plus::news::{new_news, reply_news, NewsBundle};
 
-#[derive(Clap)]
+#[derive(Parser)]
 #[clap(version = crate_version!(), author = crate_authors!())]
-#[clap(setting = AppSettings::ColoredHelp)]
 struct Opts {
     /// A level of verbosity, and can be used multiple times
     #[clap(short, long, parse(from_occurrences))]
@@ -19,7 +17,7 @@ struct Opts {
     subcmds: SubCommand,
 }
 
-#[derive(Clap)]
+#[derive(Parser)]
 enum SubCommand {
     //#[clap(version = "1.3", author = "Someone E. <someone_else@other.com>")]
     Post(PostCmd),
@@ -28,7 +26,7 @@ enum SubCommand {
 }
 
 /// Create a new post
-#[derive(Clap)]
+#[derive(Parser)]
 struct PostCmd {
     /// Sender DTN node name
     #[clap(short, long)]
@@ -83,7 +81,7 @@ fn cmd_post(opts: PostCmd, log_level: i32) -> Result<()> {
 }
 
 /// Create a new post
-#[derive(Clap)]
+#[derive(Parser)]
 struct ReplyCmd {
     /// Sender DTN node name
     #[clap(short, long)]
@@ -126,7 +124,7 @@ fn cmd_reply(opts: ReplyCmd, log_level: i32) -> Result<()> {
 }
 
 /// Decode news bundle in various forms
-#[derive(Clap)]
+#[derive(Parser)]
 struct ReadCmd {
     /// Read bundle provided as hex string
     #[clap(short = 'H', long)]
