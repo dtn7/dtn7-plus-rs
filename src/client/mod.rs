@@ -172,28 +172,28 @@ where
 ///
 /// To be used via WebSocket connection.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct WsSendData<'a> {
+pub struct WsSendData {
     /// source with a dtn URI scheme, e.g. dtn://node1 or ipn://23.0
-    pub src: &'a str,
+    pub src: String,
     /// destination with a dtn URI scheme, e.g. dtn://node1/sms or ipn://23.42/
-    pub dst: &'a str,
+    pub dst: String,
     /// turn on delivery notifications
     pub delivery_notification: bool,
     /// lifetime for bundle in milliseconds
     pub lifetime: u64,
     /// payload data
-    #[serde(with = "serde_bytes")]
-    pub data: &'a [u8],
+    #[serde(with = "crate::serde::base64_or_bytes")]
+    pub data: Vec<u8>,
 }
 
 /// Received bundle payload with meta data
 ///
 /// To be used via WebSocket connection.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct WsRecvData<'a> {
-    pub bid: &'a str,
-    pub src: &'a str,
-    pub dst: &'a str,
-    #[serde(with = "serde_bytes")]
-    pub data: &'a [u8],
+pub struct WsRecvData {
+    pub bid: String,
+    pub src: String,
+    pub dst: String,
+    #[serde(with = "crate::serde::base64_or_bytes")]
+    pub data: Vec<u8>,
 }

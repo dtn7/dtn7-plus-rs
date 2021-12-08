@@ -11,3 +11,5 @@ pub mod news;
 
 #[cfg(feature = "location")]
 pub mod location;
+
+pub mod serde;

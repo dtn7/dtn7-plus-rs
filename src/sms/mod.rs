@@ -224,6 +224,12 @@ impl SmsBuilder {
         }
     }
 }
+
+impl Default for SmsBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 /// Create a new sms bundle for IPN addressing scheme
 pub fn new_sms(src: u64, dst: u64, msg: &str, compression: bool) -> Result<SMSBundle, SmsError> {
     let src_eid = EndpointID::with_ipn(src, 767)?;
