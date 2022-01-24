@@ -28,7 +28,7 @@ fn main() -> Result<()> {
                 .short('s')
                 .long("sender")
                 .value_name("SENDER")
-                .about("Sets sender name (e.g. 'dtn://node1')")
+                .help("Sets sender name (e.g. 'dtn://node1')")
                 .required(false)
                 .takes_value(true),
         )
@@ -37,7 +37,7 @@ fn main() -> Result<()> {
                 .short('r')
                 .long("receiver")
                 .value_name("RECEIVER")
-                .about("Receiver EID (e.g. 'dtn://nodegroup/pos')")
+                .help("Receiver EID (e.g. 'dtn://nodegroup/pos')")
                 .required(true)
                 .takes_value(true),
         )
@@ -46,7 +46,7 @@ fn main() -> Result<()> {
                 .short('p')
                 .long("port")
                 .value_name("PORT")
-                .about("Local web port (default = 3000)")
+                .help("Local web port (default = 3000)")
                 .required(false)
                 .takes_value(true),
         )
@@ -55,7 +55,7 @@ fn main() -> Result<()> {
                 .short('l')
                 .long("lifetime")
                 .value_name("SECONDS")
-                .about("Bundle lifetime in seconds (default = 3600)")
+                .help("Bundle lifetime in seconds (default = 3600)")
                 .required(false)
                 .takes_value(true),
         )
@@ -63,35 +63,35 @@ fn main() -> Result<()> {
             Arg::new("verbose")
                 .short('v')
                 .long("verbose")
-                .about("verbose output")
+                .help("verbose output")
                 .takes_value(false),
         )
         .arg(
             Arg::new("dryrun")
                 .short('D')
                 .long("dry-run")
-                .about("Don't actually send packet, just dump the encoded one.")
+                .help("Don't actually send packet, just dump the encoded one.")
                 .takes_value(false),
         )
         .arg(
             Arg::new("ipv6")
                 .short('6')
                 .long("ipv6")
-                .about("Use IPv6")
+                .help("Use IPv6")
                 .takes_value(false),
         )
         .arg(
             Arg::new("INTERVAL")
                 .short('i')
                 .long("interval")
-                .about("Sending interval (1s, 5m, 2h etc)")
+                .help("Sending interval (1s, 5m, 2h etc)")
                 .takes_value(true),
         )
         .arg(
             Arg::new("LATLON")
                 .short('g')
                 .long("gps")
-                .about("Coordinates to announce, e.g., '49.1234,008.4567'")
+                .help("Coordinates to announce, e.g., '49.1234,008.4567'")
                 .takes_value(true)
                 .required(true)
                 .conflicts_with("WFW")
@@ -102,7 +102,7 @@ fn main() -> Result<()> {
             Arg::new("WFW")
                 .short('3')
                 .long("3words")
-                .about("3geonames / whatfreewords, e.g., 'SEMINOLE-CARDELLINI-TOQ'")
+                .help("3geonames / whatfreewords, e.g., 'SEMINOLE-CARDELLINI-TOQ'")
                 .takes_value(true)
                 .required(true)
                 .conflicts_with("LATLON")
@@ -113,7 +113,7 @@ fn main() -> Result<()> {
             Arg::new("ADDRESS")
                 .short('a')
                 .long("address")
-                .about("Free-form human-readable address")
+                .help("Free-form human-readable address")
                 .takes_value(true)
                 .required(true)
                 .conflicts_with("WFW")
@@ -124,7 +124,7 @@ fn main() -> Result<()> {
             Arg::new("FILE")
                 .short('f')
                 .long("from-file")
-                .about("Read GPS coords from file, expected content: 'lat:float,lon:float'")
+                .help("Read GPS coords from file, expected content: 'lat:float,lon:float'")
                 .takes_value(true)
                 .required(true)
                 .conflicts_with("WFW")

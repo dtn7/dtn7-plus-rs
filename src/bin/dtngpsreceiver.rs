@@ -40,7 +40,7 @@ fn main() -> anyhow::Result<()> {
                 .short('e')
                 .long("endpoint")
                 .value_name("ENDPOINT")
-                .about("Specify local endpoint, e.g. '/incoming', or a group endpoint 'dtn://helpers/incoming'")
+                .help("Specify local endpoint, e.g. '/incoming', or a group endpoint 'dtn://helpers/incoming'")
                 .takes_value(true),
         )
         .arg(
@@ -48,7 +48,7 @@ fn main() -> anyhow::Result<()> {
                 .short('p')
                 .long("port")
                 .value_name("PORT")
-                .about("Local web port (default = 3000)")
+                .help("Local web port (default = 3000)")
                 .required(false)
                 .takes_value(true),
         )        
@@ -56,21 +56,21 @@ fn main() -> anyhow::Result<()> {
             Arg::new("verbose")
                 .short('v')
                 .long("verbose")
-                .about("verbose output")
+                .help("verbose output")
                 .takes_value(false),
         )
         .arg(
             Arg::new("ipv6")
                 .short('6')
                 .long("ipv6")
-                .about("Use IPv6")
+                .help("Use IPv6")
                 .takes_value(false),
         )
         .arg(
             Arg::new("rest")
                 .short('r')
                 .long("rest")
-                .about("Rest endpoint to dump incoming location data, e.g., http://127.0.0.1:1880/dtnpos")
+                .help("Rest endpoint to dump incoming location data, e.g., http://127.0.0.1:1880/dtnpos")
                 .takes_value(true),
         )
         .get_matches();
