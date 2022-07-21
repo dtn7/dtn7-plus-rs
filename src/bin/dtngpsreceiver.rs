@@ -143,6 +143,9 @@ fn main() -> anyhow::Result<()> {
                 }
                 break;
             }
+            Message::Frame(_) => if verbose {
+                eprintln!("[!] Received raw frame, not supported!")
+            },
         }
     }
 
