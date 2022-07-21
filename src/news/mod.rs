@@ -229,11 +229,7 @@ impl News {
         self.references.clone()
     }
     pub fn signature(&self) -> Option<Vec<u8>> {
-        if let Some(sig) = self.sig.clone() {
-            Some(sig)
-        } else {
-            None
-        }
+        self.sig.clone()
     }
     pub fn msg(&self) -> String {
         if self.compression() {
@@ -542,7 +538,7 @@ mod tests {
         assert!(NewsBundle::try_from(raw_bundle.clone()).is_err());
 
         raw_bundle.primary.destination = bp7::EndpointID::with_ipn(123, 777).unwrap();
-        assert!(NewsBundle::try_from(raw_bundle.clone()).is_err());
+        assert!(NewsBundle::try_from(raw_bundle).is_err());
     }
 
     #[test]

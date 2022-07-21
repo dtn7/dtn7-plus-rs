@@ -49,7 +49,7 @@ struct PostCmd {
     hex: bool,
 }
 
-fn cmd_post(opts: PostCmd, log_level: i32) -> Result<()> {
+fn cmd_post(opts: PostCmd, _log_level: i32) -> Result<()> {
     let msg = if opts.message == "-" {
         let mut raw_bytes: Vec<u8> = Vec::new();
         std::io::stdin()
@@ -100,7 +100,7 @@ struct ReplyCmd {
     hex: bool,
 }
 
-fn cmd_reply(opts: ReplyCmd, log_level: i32) -> Result<()> {
+fn cmd_reply(opts: ReplyCmd, _log_level: i32) -> Result<()> {
     let msg = if opts.message == "-" {
         let mut raw_bytes: Vec<u8> = Vec::new();
         std::io::stdin()
@@ -133,7 +133,7 @@ struct ReadCmd {
     #[clap(short, long)]
     path: Option<String>,
 }
-fn cmd_read(opts: ReadCmd, log_level: i32) -> Result<()> {
+fn cmd_read(opts: ReadCmd, _log_level: i32) -> Result<()> {
     let bytes = if let Some(hex_str) = opts.hex {
         bp7::helpers::unhexify(&hex_str)?
     } else {

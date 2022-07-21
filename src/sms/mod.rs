@@ -118,7 +118,7 @@ impl SMSBundle {
     pub fn sms(&self) -> SMS {
         let payload = self.0.payload().expect("missing payload in bundle");
 
-        serde_cbor::from_slice(&payload).expect("error decoding sms payload")
+        serde_cbor::from_slice(payload).expect("error decoding sms payload")
     }
     pub fn compression(&self) -> bool {
         self.sms().compression()
@@ -158,11 +158,7 @@ impl SMS {
         self.enc
     }
     pub fn signature(&self) -> Option<Vec<u8>> {
-        if let Some(sig) = self.sig.clone() {
-            Some(sig)
-        } else {
-            None
-        }
+        self.sig.clone()
     }
     pub fn msg(&self) -> String {
         if self.compression() {
@@ -264,8 +260,8 @@ mod tests {
     #[test]
     fn test_sms_new_uncompressed() {
         let mut sms = new_sms(
-            01239468786,
-            01239468999,
+            1239468786,
+            1239468999,
             "The quick brown fox jumps over the lazy dog",
             false,
         )
@@ -278,8 +274,8 @@ mod tests {
     #[test]
     fn test_sms_new_compressed() {
         let mut sms = new_sms(
-            01239468786,
-            01239468999,
+            1239468786,
+            1239468999,
             "The quick brown fox jumps over the lazy dog",
             true,
         )
@@ -318,8 +314,8 @@ mod tests {
     #[test]
     fn test_invalid_bundles() {
         let sms = new_sms(
-            01239468786,
-            01239468999,
+            1239468786,
+            1239468999,
             "The quick brown fox jumps over the lazy dog",
             true,
         )
@@ -350,8 +346,8 @@ mod tests {
     #[test]
     fn test_pureness() {
         let sms = new_sms(
-            01239468786,
-            01239468999,
+            1239468786,
+            1239468999,
             "The quick brown fox jumps over the lazy dog",
             true,
         )
