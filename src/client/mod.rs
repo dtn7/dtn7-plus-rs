@@ -194,6 +194,8 @@ pub struct WsRecvData {
     pub bid: String,
     pub src: String,
     pub dst: String,
+    pub cts: CreationTimestamp,
+    pub lifetime: u64,
     #[serde(with = "crate::serde::base64_or_bytes")]
     pub data: Vec<u8>,
 }
