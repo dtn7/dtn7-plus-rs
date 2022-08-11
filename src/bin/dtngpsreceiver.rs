@@ -19,8 +19,21 @@ use bp7::dtntime::DtnTimeHelpers;
                 if verbose {
                     println!("{}", log_out);                        
                 }
+                if let Some(rest) = rest.clone() {
+                    let _res = attohttpc::get(&format!("{}?gps={}", rest, log_out))
+                        .send()
+                        .expect("error sending position data")
+                        .text()?;
+                }
+            }
+            if let Location::XY(coords) = pos {
+                let mut log_out = format!("{},{},\"{:?}\",{:?}", bndl.primary.creation_timestamp.dtntime().unix(), bndl.id(),/* bndl.primary.source.node_id().ok_or(anyhow!("no source address"))?,*/ coords, flags);
+                log_out.retain(|c| !c.is_whitespace());
+                if verbose {
+                    println!("{}", log_out);                        
+                }
                 if let Some(rest) = rest {
-                    let _res = attohttpc::get(&format!("{}?data={}", rest, log_out))
+                    let _res = attohttpc::get(&format!("{}?xy={}", rest, log_out))
                         .send()
                         .expect("error sending position data")
                         .text()?;

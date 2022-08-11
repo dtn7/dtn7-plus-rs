@@ -9,14 +9,18 @@ use std::convert::TryInto;
 use std::fs;
 use std::time::Duration;
 
-fn read_pos_from_file(filename: &str) -> Result<Location> {
+fn read_pos_from_file(filename: &str, file_is_xy: bool) -> Result<Location> {
     let contents = fs::read_to_string(filename)?;
     let coords: Vec<f32> = contents
         .trim()
         .split(',')
         .map(|c| c.parse().unwrap())
         .collect();
-    Ok(Location::LatLon((coords[0], coords[1])))
+    if file_is_xy {
+        Ok(Location::XY((coords[0], coords[1])))
+    } else {
+        Ok(Location::LatLon((coords[0], coords[1])))
+    }
 }
 fn main() -> Result<()> {
     let matches = App::new("dtngpslogger")
@@ -81,6 +85,13 @@ fn main() -> Result<()> {
                 .takes_value(false),
         )
         .arg(
+            Arg::new("flag-mobile")
+                .short('m')
+                .long("flag-mobile")
+                .help("Set mobile flag")
+                .takes_value(false),
+        )
+        .arg(
             Arg::new("INTERVAL")
                 .short('i')
                 .long("interval")
@@ -124,12 +135,20 @@ fn main() -> Result<()> {
             Arg::new("FILE")
                 .short('f')
                 .long("from-file")
-                .help("Read GPS coords from file, expected content: 'lat:float,lon:float'")
+                .help("Read coordinates from file\nexpected content: 'float,float' as lat,lon or x,y\nBy default coordinates are parsed as lat,lon")
                 .takes_value(true)
                 .required(true)
                 .conflicts_with("WFW")
                 .conflicts_with("ADDRESS")
                 .conflicts_with("LATLON"),
+        )
+        .arg(
+            Arg::new("FILE_XY")
+                .short('x')
+                .long("file-is-xy")
+                .help("Interpret file as x,y coordinates")
+                .takes_value(false)
+                .requires("FILE")
         )
         .get_matches();
     let localhost = if matches.is_present("ipv6") {
@@ -151,6 +170,8 @@ fn main() -> Result<()> {
 
     let dryrun: bool = matches.is_present("dryrun");
     let verbose: bool = matches.is_present("verbose");
+    let flag_mobile: bool = matches.is_present("flag-mobile");
+    let file_is_xy: bool = matches.is_present("FILE_XY");
     let sender: EndpointID = matches
         .value_of("sender")
         .unwrap_or(
@@ -180,7 +201,7 @@ fn main() -> Result<()> {
         Location::WFW(wfw.into())
     } else if let Some(fname) = matches.value_of("FILE") {
         filename = fname;
-        read_pos_from_file(filename)?
+        read_pos_from_file(filename, file_is_xy)?
     //Location::WFW(wfw.into())
     } else {
         panic!("This should never happen! Missing position parameter!");
@@ -193,17 +214,21 @@ fn main() -> Result<()> {
             .expect("error getting creation timestamp from local dtnd");
 
         let mut bndl = new_std_payload_bundle(sender.clone(), receiver.clone(), vec![]);
-        bndl.primary.bundle_control_flags.set(
-            BundleControlFlags::BUNDLE_MUST_NOT_FRAGMENTED
-                | BundleControlFlags::BUNDLE_STATUS_REQUEST_DELIVERY,
-        );
+        bndl.primary
+            .bundle_control_flags
+            .set(BundleControlFlags::BUNDLE_MUST_NOT_FRAGMENTED);
         bndl.primary.creation_timestamp = cts;
         bndl.primary.lifetime = std::time::Duration::from_secs(lifetime);
 
         bndl.canonicals
             .retain(|c| c.block_type != crate::canonical::PAYLOAD_BLOCK);
 
-        let data = LocationBlockData::Position(NodeTypeFlags::MOBILE, loc.clone());
+        let node_flags = if flag_mobile {
+            NodeTypeFlags::MOBILE
+        } else {
+            NodeTypeFlags::empty()
+        };
+        let data = LocationBlockData::Position(node_flags, loc.clone());
         let cblock = new_location_block(1, data.clone());
 
         bndl.add_canonical_block(cblock);
@@ -228,7 +253,7 @@ fn main() -> Result<()> {
             break;
         }
         if from_file {
-            loc = read_pos_from_file(filename)?;
+            loc = read_pos_from_file(filename, file_is_xy)?;
         }
         std::thread::sleep(interval);
     }

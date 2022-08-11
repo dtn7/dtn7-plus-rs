@@ -11,6 +11,7 @@ enum LocationType {
     LatLon = 1,
     Human = 2,
     WFW = 3,
+    XY = 4,
 }
 
 /// Represents an location in various addressing schemes.
@@ -23,6 +24,8 @@ pub enum Location {
     Human(String),
     /// 3 word code geocode: https://3geonames.org/
     WFW(String),
+    /// XY coordinates
+    XY((f32, f32)),
 }
 
 impl Serialize for Location {
@@ -43,6 +46,10 @@ impl Serialize for Location {
             Location::WFW(address) => {
                 seq.serialize_element(&(LocationType::WFW as u8))?;
                 seq.serialize_element(&address)?;
+            }
+            Location::XY(coords) => {
+                seq.serialize_element(&(LocationType::XY as u8))?;
+                seq.serialize_element(&coords)?;
             }
         }
         seq.end()
@@ -95,6 +102,12 @@ impl<'de> Deserialize<'de> for Location {
                             .ok_or_else(|| de::Error::invalid_length(1, &self))?;
                         Ok(Location::WFW(address))
                     }
+                    LocationType::XY => {
+                        let coords: (f32, f32) = seq
+                            .next_element()?
+                            .ok_or_else(|| de::Error::invalid_length(1, &self))?;
+                        Ok(Location::XY(coords))
+                    }
                 }
             }
         }
@@ -109,6 +122,13 @@ mod tests {
     #[test]
     fn test_loc_lonlat_roundtrip() {
         let loc = Location::LatLon((23.0, 42.0));
+        let buf = serde_cbor::to_vec(&loc).unwrap();
+        let loc2 = serde_cbor::from_slice(&buf).unwrap();
+        assert_eq!(loc, loc2);
+    }
+    #[test]
+    fn test_loc_xy_roundtrip() {
+        let loc = Location::XY((23.0, 42.0));
         let buf = serde_cbor::to_vec(&loc).unwrap();
         let loc2 = serde_cbor::from_slice(&buf).unwrap();
         assert_eq!(loc, loc2);

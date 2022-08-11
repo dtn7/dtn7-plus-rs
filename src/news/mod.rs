@@ -386,7 +386,7 @@ pub fn new_news(
         .compression(compression)
         .message(msg)
         .topic(topic)
-        .thread_id(thread_id.unwrap_or(Uuid::new_v4()))
+        .thread_id(thread_id.unwrap_or_else(Uuid::new_v4))
         .tags(tags);
     let payload = if let Some(referece) = references {
         payload.references(&referece).build()?
