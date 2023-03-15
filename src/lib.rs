@@ -12,4 +12,7 @@ pub mod news;
 #[cfg(feature = "location")]
 pub mod location;
 
+#[cfg(feature = "priority")]
+pub mod priority;
+
 pub mod serde;

@@ -34,11 +34,12 @@ base64 = "0.13.0"
 
 
 [features]
+priority = ["common"]
 client = ["attohttpc", "tungstenite", "anyhow", "common", "url"]
 sms = ["smaz", "common"]
 news = ["smaz", "common", "uuid"]
 common = ["serde_bytes", "serde_cbor"]
-default = ["sms", "client", "location", "cli", "news", "common"]
+default = ["sms", "client", "location", "cli", "news", "common", "priority"]
 location = ["derive-try-from-primitive", "common", "bitflags"]
 cli = ["clap", "humantime", "client", "anyhow", "url"]
 
