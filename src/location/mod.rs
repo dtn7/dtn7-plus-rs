@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 bitflags! {
     // Results in default value with bits: 0
-    #[derive(Default, Serialize, Deserialize)]
+    #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
     pub struct NodeTypeFlags: u16 {
         /// Indicates that this node is a mobile device, moving over time, e.g., UAV, smartphone or satellite
         /// If this flag is not set then the node is considered stationary, e.g., immobile infrastructure such as an access point

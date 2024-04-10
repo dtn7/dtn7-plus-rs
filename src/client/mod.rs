@@ -16,7 +16,7 @@ use bp7::{CreationTimestamp, EndpointID};
 use serde::{Deserialize, Serialize};
 use std::convert::TryInto;
 use thiserror::Error;
-use tungstenite::{client, WebSocket};
+use tungstenite::WebSocket;
 
 pub use tungstenite::protocol::Message;
 
@@ -107,7 +107,8 @@ impl DtnClient {
     {
         let ws_url = url::Url::parse(&format!("ws://{}:{}/ws", self.localhost, self.port))
             .expect("Error constructing websocket url!");
-        let (socket, _) = client(&ws_url, stream).expect("Error constructing websocket!");
+        let (socket, _) =
+            tungstenite::client::client(&ws_url, stream).expect("Error constructing websocket!");
         Ok(DtnWsConnection { socket })
     }
 }

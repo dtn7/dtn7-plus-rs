@@ -1,11 +1,15 @@
 pub mod base64_or_bytes {
+    use std::borrow::Borrow;
+
     use base64::display::Base64Display;
     use serde::{Deserializer, Serializer};
 
     #[allow(clippy::ptr_arg)]
     pub fn serialize<S: Serializer>(v: &Vec<u8>, s: S) -> Result<S::Ok, S::Error> {
         if s.is_human_readable() {
-            s.collect_str(&Base64Display::with_config(v, base64::STANDARD))
+            s.collect_str(
+                Base64Display::new(v, &base64::engine::general_purpose::STANDARD).borrow(),
+            )
         } else {
             serde_bytes::serialize(v, s)
         }

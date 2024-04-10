@@ -34,7 +34,6 @@ fn main() -> Result<()> {
                 .value_name("SENDER")
                 .help("Sets sender name (e.g. 'dtn://node1')")
                 .required(false)
-                .takes_value(true),
         )
         .arg(
             Arg::new("receiver")
@@ -43,7 +42,6 @@ fn main() -> Result<()> {
                 .value_name("RECEIVER")
                 .help("Receiver EID (e.g. 'dtn://nodegroup/pos')")
                 .required(true)
-                .takes_value(true),
         )
         .arg(
             Arg::new("port")
@@ -52,7 +50,6 @@ fn main() -> Result<()> {
                 .value_name("PORT")
                 .help("Local web port (default = 3000)")
                 .required(false)
-                .takes_value(true),
         )
         .arg(
             Arg::new("lifetime")
@@ -61,49 +58,46 @@ fn main() -> Result<()> {
                 .value_name("SECONDS")
                 .help("Bundle lifetime in seconds (default = 3600)")
                 .required(false)
-                .takes_value(true),
         )
         .arg(
             Arg::new("verbose")
                 .short('v')
                 .long("verbose")
                 .help("verbose output")
-                .takes_value(false),
+                .action(clap::ArgAction::SetTrue),
         )
         .arg(
             Arg::new("dryrun")
                 .short('D')
                 .long("dry-run")
                 .help("Don't actually send packet, just dump the encoded one.")
-                .takes_value(false),
+                .action(clap::ArgAction::SetTrue),
         )
         .arg(
             Arg::new("ipv6")
                 .short('6')
                 .long("ipv6")
                 .help("Use IPv6")
-                .takes_value(false),
+                .action(clap::ArgAction::SetTrue),
         )
         .arg(
             Arg::new("flag-mobile")
                 .short('m')
                 .long("flag-mobile")
                 .help("Set mobile flag")
-                .takes_value(false),
+                .action(clap::ArgAction::SetTrue),
         )
         .arg(
             Arg::new("INTERVAL")
                 .short('i')
                 .long("interval")
                 .help("Sending interval (1s, 5m, 2h etc)")
-                .takes_value(true),
         )
         .arg(
             Arg::new("LATLON")
                 .short('g')
                 .long("gps")
                 .help("Coordinates to announce, e.g., '49.1234,008.4567'")
-                .takes_value(true)
                 .required(true)
                 .conflicts_with("WFW")
                 .conflicts_with("ADDRESS")
@@ -114,7 +108,6 @@ fn main() -> Result<()> {
                 .short('3')
                 .long("3words")
                 .help("3geonames / whatfreewords, e.g., 'SEMINOLE-CARDELLINI-TOQ'")
-                .takes_value(true)
                 .required(true)
                 .conflicts_with("LATLON")
                 .conflicts_with("ADDRESS")

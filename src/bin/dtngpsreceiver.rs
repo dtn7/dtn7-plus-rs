@@ -1,5 +1,5 @@
 use bp7::*;
-use clap::{crate_authors, crate_version, App, Arg};
+use clap::{crate_authors, crate_version, Arg, App};
 use dtn7_plus::client::DtnClient;
 use dtn7_plus::location::*;
 use tungstenite::Message;
@@ -54,7 +54,6 @@ fn main() -> anyhow::Result<()> {
                 .long("endpoint")
                 .value_name("ENDPOINT")
                 .help("Specify local endpoint, e.g. '/incoming', or a group endpoint 'dtn://helpers/incoming'")
-                .takes_value(true),
         )
         .arg(
             Arg::new("port")
@@ -63,28 +62,26 @@ fn main() -> anyhow::Result<()> {
                 .value_name("PORT")
                 .help("Local web port (default = 3000)")
                 .required(false)
-                .takes_value(true),
         )        
         .arg(
             Arg::new("verbose")
                 .short('v')
                 .long("verbose")
                 .help("verbose output")
-                .takes_value(false),
+                .action(clap::ArgAction::SetTrue),
         )
         .arg(
             Arg::new("ipv6")
                 .short('6')
                 .long("ipv6")
                 .help("Use IPv6")
-                .takes_value(false),
+                .action(clap::ArgAction::SetTrue),
         )
         .arg(
             Arg::new("rest")
                 .short('r')
                 .long("rest")
                 .help("Rest endpoint to dump incoming location data, e.g., http://127.0.0.1:1880/dtnpos")
-                .takes_value(true),
         )
         .get_matches();
 
