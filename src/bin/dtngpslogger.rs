@@ -233,7 +233,7 @@ fn main() -> Result<()> {
             println!("{}", hexstr);
         }
         if !dryrun {
-            let res = attohttpc::post(&format!("http://{}:{}/insert", localhost, port))
+            let res = attohttpc::post(format!("http://{}:{}/insert", localhost, port))
                 .bytes(binbundle)
                 .send()
                 .expect("error send bundle to dtnd")

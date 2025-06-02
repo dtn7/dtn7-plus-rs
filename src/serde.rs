@@ -1,7 +1,7 @@
 pub mod base64_or_bytes {
     use std::borrow::Borrow;
 
-    use base64::display::Base64Display;
+    use base64::{display::Base64Display, Engine};
     use serde::{Deserializer, Serializer};
 
     #[allow(clippy::ptr_arg)]
@@ -51,7 +51,8 @@ pub mod base64_or_bytes {
                 where
                     E: serde::de::Error,
                 {
-                    base64::decode(v).map_err(serde::de::Error::custom)
+                    Engine::decode(&base64::engine::general_purpose::STANDARD, v)
+                        .map_err(serde::de::Error::custom)
                 }
 
                 fn visit_byte_buf<E>(self, v: Vec<u8>) -> Result<Self::Value, E>

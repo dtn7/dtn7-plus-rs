@@ -20,7 +20,7 @@ use bp7::dtntime::DtnTimeHelpers;
                     println!("{}", log_out);                        
                 }
                 if let Some(rest) = rest.clone() {
-                    let _res = attohttpc::get(&format!("{}?gps={}", rest, log_out))
+                    let _res = attohttpc::get(format!("{}?gps={}", rest, log_out))
                         .send()
                         .expect("error sending position data")
                         .text()?;
@@ -33,7 +33,7 @@ use bp7::dtntime::DtnTimeHelpers;
                     println!("{}", log_out);                        
                 }
                 if let Some(rest) = rest {
-                    let _res = attohttpc::get(&format!("{}?xy={}", rest, log_out))
+                    let _res = attohttpc::get(format!("{}?xy={}", rest, log_out))
                         .send()
                         .expect("error sending position data")
                         .text()?;

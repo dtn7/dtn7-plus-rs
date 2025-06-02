@@ -16,7 +16,7 @@ use bp7::{CreationTimestamp, EndpointID};
 use serde::{Deserialize, Serialize};
 use std::convert::TryInto;
 use thiserror::Error;
-use tungstenite::WebSocket;
+use tungstenite::{protocol::WebSocketConfig, WebSocket};
 
 pub use tungstenite::protocol::Message;
 
@@ -57,7 +57,7 @@ impl DtnClient {
     }
     /// Return the local node ID via rest interface
     pub fn local_node_id(&self) -> Result<EndpointID, ClientError> {
-        Ok(attohttpc::get(&format!(
+        Ok(attohttpc::get(format!(
             "http://{}:{}/status/nodeid",
             self.localhost, self.port
         ))
@@ -67,14 +67,14 @@ impl DtnClient {
     }
     /// Get a new node-wide unique creation timestamp via rest interface
     pub fn creation_timestamp(&self) -> Result<CreationTimestamp, ClientError> {
-        let response = attohttpc::get(&format!("http://{}:{}/cts", self.localhost, self.port))
+        let response = attohttpc::get(format!("http://{}:{}/cts", self.localhost, self.port))
             .send()?
             .text()?;
         Ok(serde_json::from_str(&response)?)
     }
     /// Register a new application endpoint at local node
     pub fn register_application_endpoint(&self, path: &str) -> Result<(), ClientError> {
-        let _response = attohttpc::get(&format!(
+        let _response = attohttpc::get(format!(
             "http://{}:{}/register?{}",
             self.localhost, self.port, path
         ))
@@ -84,7 +84,7 @@ impl DtnClient {
     }
     /// Unregister an application endpoint at local node
     pub fn unregister_application_endpoint(&self, path: &str) -> Result<(), ClientError> {
-        let _response = attohttpc::get(&format!(
+        let _response = attohttpc::get(format!(
             "http://{}:{}/unregister?{}",
             self.localhost, self.port, path
         ))
@@ -95,8 +95,17 @@ impl DtnClient {
 
     /// Constructs a new websocket connection to the configured dtn7 client
     pub fn ws(&self) -> anyhow::Result<DtnWsConnection<std::net::TcpStream>> {
-        let stream = std::net::TcpStream::connect(&format!("{}:{}", self.localhost, self.port))?;
+        let stream = std::net::TcpStream::connect(format!("{}:{}", self.localhost, self.port))?;
         let ws = self.ws_custom(stream)?;
+        Ok(ws)
+    }
+    /// Constructs a new websocket connection to the configured dtn7 client with a custom WebSocketConfig
+    pub fn ws_with_config(
+        &self,
+        config: WebSocketConfig,
+    ) -> anyhow::Result<DtnWsConnection<std::net::TcpStream>> {
+        let stream = std::net::TcpStream::connect(format!("{}:{}", self.localhost, self.port))?;
+        let ws = self.ws_custom_with_config(stream, config)?;
         Ok(ws)
     }
 
@@ -109,6 +118,21 @@ impl DtnClient {
             .expect("Error constructing websocket url!");
         let (socket, _) =
             tungstenite::client::client(&ws_url, stream).expect("Error constructing websocket!");
+        Ok(DtnWsConnection { socket })
+    }
+    /// Constructs a new websocket connection to the configured dtn7 client using a custom Stream and a custom WebSocketConfig
+    pub fn ws_custom_with_config<Stream>(
+        &self,
+        stream: Stream,
+        config: WebSocketConfig,
+    ) -> anyhow::Result<DtnWsConnection<Stream>>
+    where
+        Stream: std::io::Read + std::io::Write,
+    {
+        let ws_url = url::Url::parse(&format!("ws://{}:{}/ws", self.localhost, self.port))
+            .expect("Error constructing websocket url!");
+        let (socket, _) = tungstenite::client::client_with_config(&ws_url, stream, Some(config))
+            .expect("Error constructing websocket!");
         Ok(DtnWsConnection { socket })
     }
 }
@@ -130,7 +154,7 @@ where
     /// `/bundle`
     /// `/subscribe <service>`
     pub fn write_text(&mut self, txt: &str) -> anyhow::Result<()> {
-        self.socket.write_message(Message::text(txt))?;
+        self.socket.send(Message::text(txt))?;
         Ok(())
     }
     /// Send a binary message via websocket
@@ -139,7 +163,7 @@ where
     /// - a valid bundle (in bundle mode)
     /// - a WsSendData struct as a cbor buffer (in data mode)
     pub fn write_binary(&mut self, bin: &[u8]) -> anyhow::Result<()> {
-        self.socket.write_message(Message::binary(bin))?;
+        self.socket.send(Message::binary(bin))?;
         Ok(())
     }
 
@@ -147,12 +171,12 @@ where
     ///
     /// Could be text, binary, ping, etc etc
     pub fn read_message(&mut self) -> anyhow::Result<Message> {
-        Ok(self.socket.read_message()?)
+        Ok(self.socket.read()?)
     }
 
     /// Expect a text message next, returning an error on any other message type
     pub fn read_text(&mut self) -> anyhow::Result<String> {
-        let msg = self.socket.read_message()?;
+        let msg = self.socket.read()?;
         if let Message::Text(txt) = msg {
             Ok(txt)
         } else {
@@ -161,7 +185,7 @@ where
     }
     /// Expect a binary message next, returning an error on any other message type
     pub fn read_binary(&mut self) -> anyhow::Result<Vec<u8>> {
-        let msg = self.socket.read_message()?;
+        let msg = self.socket.read()?;
         if let Message::Binary(bin) = msg {
             Ok(bin)
         } else {
