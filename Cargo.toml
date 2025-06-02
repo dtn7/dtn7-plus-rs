@@ -1,6 +1,6 @@
 [package]
 name = "dtn7-plus"
-version = "0.7.2"
+version = "0.7.3"
 authors = ["Lars Baumgaertner <baumgaertner@cs.tu-darmstadt.de>"]
 description = "Additional helpers for rust dtn daemon"
 edition = "2018"
