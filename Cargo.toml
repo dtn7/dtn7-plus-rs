@@ -24,7 +24,7 @@ smaz = { version = "0.1.0", optional = true }
 thiserror = "2.0.16"
 derive-try-from-primitive = { version = "1.0.0", optional = true }
 bitflags = { version = "2.9.4", features = ["serde"], optional = true }
-clap = { version = "3.2.25", features = ["derive", "cargo"], optional = true }
+clap = { version = "4.5.47", features = ["derive", "cargo"], optional = true }
 humantime = { version = "2.2.0", optional = true }
 anyhow = { version = "1.0.99", optional = true }
 url = { version = "2.5.7", optional = true }

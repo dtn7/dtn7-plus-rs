@@ -1,7 +1,7 @@
-use anyhow::{anyhow, bail};
+use anyhow::{anyhow, bail, Result};
 use bp7::dtntime::DtnTimeHelpers;
 use bp7::*;
-use clap::{crate_authors, crate_version, App, Arg};
+use clap::{crate_authors, crate_version, Arg, ArgAction, Command};
 use dtn7_plus::client::DtnClient;
 use dtn7_plus::location::*;
 use std::convert::TryFrom;
@@ -61,8 +61,8 @@ fn handle_incoming_bundle(
     Ok(())
 }
 
-fn main() -> anyhow::Result<()> {
-    let matches = App::new("dtngpsreceiver")
+fn main() -> Result<()> {
+    let matches = Command::new("dtngpsreceiver")
         .version(crate_version!())
         .author(crate_authors!())
         .about("A simple Bundle Protocol 7 GPS Receiver Utility for Delay Tolerant Networking")
@@ -72,13 +72,15 @@ fn main() -> anyhow::Result<()> {
                 .long("endpoint")
                 .value_name("ENDPOINT")
                 .help("Specify local endpoint, e.g. '/incoming', or a group endpoint 'dtn://helpers/incoming'")
+                .required(true)
         )
         .arg(
             Arg::new("port")
                 .short('p')
                 .long("port")
                 .value_name("PORT")
-                .help("Local web port (default = 3000)")
+                .help("Local web port (default = $DTN_WEB_PORT or 3000)")
+                .value_parser(clap::value_parser!(u16))
                 .required(false)
         )
         .arg(
@@ -86,39 +88,45 @@ fn main() -> anyhow::Result<()> {
                 .short('v')
                 .long("verbose")
                 .help("verbose output")
-                .action(clap::ArgAction::SetTrue),
+                .action(ArgAction::SetTrue),
         )
         .arg(
             Arg::new("ipv6")
                 .short('6')
                 .long("ipv6")
                 .help("Use IPv6")
-                .action(clap::ArgAction::SetTrue),
+                .action(ArgAction::SetTrue),
         )
         .arg(
             Arg::new("rest")
                 .short('r')
                 .long("rest")
-                .help("Rest endpoint to dump incoming location data, e.g., http://127.0.0.1:1880/dtnpos")
+                .help("REST endpoint to dump incoming location data, e.g., http://127.0.0.1:1880/dtnpos")
         )
         .get_matches();
 
-    let verbose: bool = matches.is_present("verbose");
-    let port = std::env::var("DTN_WEB_PORT").unwrap_or_else(|_| "3000".into());
-    let port = matches.value_of("port").unwrap_or(&port); // string is fine no need to parse number
-    let localhost = if matches.is_present("ipv6") {
+    let verbose: bool = matches.get_flag("verbose");
+    let localhost = if matches.get_flag("ipv6") {
         "[::1]"
     } else {
         "127.0.0.1"
     };
 
-    let client = DtnClient::with_host_and_port(
-        localhost.into(),
-        port.parse::<u16>().expect("invalid port number"),
-    );
+    // prefer CLI, fall back to env, then 3000
+    let port: u16 = matches.get_one::<u16>("port").copied().unwrap_or_else(|| {
+        std::env::var("DTN_WEB_PORT")
+            .ok()
+            .and_then(|s| s.parse::<u16>().ok())
+            .unwrap_or(3000)
+    });
 
-    let endpoint: String = matches.value_of("endpoint").unwrap().into();
-    let rest: Option<String> = matches.value_of("rest").map(|r| r.into());
+    let client = DtnClient::with_host_and_port(localhost.into(), port);
+
+    let endpoint: String = matches
+        .get_one::<String>("endpoint")
+        .expect("endpoint is required")
+        .to_owned();
+    let rest: Option<String> = matches.get_one::<String>("rest").cloned();
 
     client.register_application_endpoint(&endpoint)?;
     let mut wscon = client.ws()?;
