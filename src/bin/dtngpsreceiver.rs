@@ -1,7 +1,7 @@
-use anyhow::{anyhow, bail, Result};
+use anyhow::{Result, anyhow, bail};
 use bp7::dtntime::DtnTimeHelpers;
 use bp7::*;
-use clap::{crate_authors, crate_version, Arg, ArgAction, Command};
+use clap::{Arg, ArgAction, Command, crate_authors, crate_version};
 use dtn7_plus::client::DtnClient;
 use dtn7_plus::location::*;
 use std::convert::TryFrom;

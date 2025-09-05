@@ -1,10 +1,10 @@
 use super::{Location, NodeTypeFlags};
-use bp7::canonical::{new_canonical_block, CanonicalBlockType, CanonicalData};
+use bp7::canonical::{CanonicalBlockType, CanonicalData, new_canonical_block};
 use bp7::{CanonicalBlock, EndpointID};
 use derive_try_from_primitive::TryFromPrimitive;
 use serde::de::{SeqAccess, Visitor};
 use serde::ser::{SerializeSeq, Serializer};
-use serde::{de, Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, de};
 use std::convert::TryFrom;
 use std::fmt;
 use thiserror::Error;
@@ -190,10 +190,10 @@ pub fn get_location_data(cblock: &CanonicalBlock) -> Result<LocationBlockData, L
 #[cfg(test)]
 mod tests {
     use crate::location::{
-        get_location_data, new_location_block, Location, LocationBlockData, NodeTypeFlags,
+        Location, LocationBlockData, NodeTypeFlags, get_location_data, new_location_block,
     };
-    use bp7::bundle::Block;
     use bp7::EndpointID;
+    use bp7::bundle::Block;
     use std::convert::TryFrom;
 
     #[test]

@@ -4,8 +4,8 @@ use std::{
 };
 
 use anyhow::Result;
-use clap::{crate_authors, crate_version, ArgAction, Parser};
-use dtn7_plus::news::{new_news, reply_news, NewsBundle};
+use clap::{ArgAction, Parser, crate_authors, crate_version};
+use dtn7_plus::news::{NewsBundle, new_news, reply_news};
 
 #[derive(Parser)]
 #[clap(version = crate_version!(), author = crate_authors!())]

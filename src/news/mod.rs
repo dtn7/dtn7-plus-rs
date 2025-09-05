@@ -440,7 +440,7 @@ pub fn reply_news(
 
 #[cfg(test)]
 mod tests {
-    use crate::news::{new_news, NewsBundle};
+    use crate::news::{NewsBundle, new_news};
     use std::convert::TryFrom;
 
     use super::reply_news;

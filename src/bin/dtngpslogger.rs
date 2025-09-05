@@ -2,7 +2,7 @@ use anyhow::Result;
 use bp7::bundle::*;
 use bp7::flags::{BundleControlFlags, BundleValidation};
 use bp7::*;
-use clap::{crate_authors, crate_version, Arg, ArgAction, ArgGroup, Command};
+use clap::{Arg, ArgAction, ArgGroup, Command, crate_authors, crate_version};
 use dtn7_plus::client::DtnClient;
 use dtn7_plus::location::*;
 use std::convert::TryInto;

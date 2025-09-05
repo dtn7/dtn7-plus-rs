@@ -16,7 +16,7 @@ use bp7::{CreationTimestamp, EndpointID};
 use serde::{Deserialize, Serialize};
 use std::{convert::TryInto, str::FromStr};
 use thiserror::Error;
-use tungstenite::{http::Uri, protocol::WebSocketConfig, WebSocket};
+use tungstenite::{WebSocket, http::Uri, protocol::WebSocketConfig};
 
 pub use tungstenite::protocol::Message;
 

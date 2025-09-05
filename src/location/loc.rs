@@ -3,7 +3,7 @@ use core::fmt;
 use derive_try_from_primitive::TryFromPrimitive;
 use serde::de::{SeqAccess, Visitor};
 use serde::ser::{SerializeSeq, Serializer};
-use serde::{de, Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, de};
 
 #[derive(Debug, Clone, PartialEq, TryFromPrimitive)]
 #[repr(u8)]

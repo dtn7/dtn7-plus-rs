@@ -255,7 +255,7 @@ pub fn new_sms(src: u64, dst: u64, msg: &str, compression: bool) -> Result<SMSBu
 
 #[cfg(test)]
 mod tests {
-    use crate::sms::{new_sms, SMSBundle};
+    use crate::sms::{SMSBundle, new_sms};
     use std::convert::TryFrom;
     #[test]
     fn test_sms_new_uncompressed() {
