@@ -156,7 +156,7 @@ fn main() -> Result<()> {
             }
             Message::Binary(bin) => {
                 let bndl: Bundle =
-                    Bundle::try_from(bin).expect("Error decoding bundle from server");
+                    Bundle::try_from(bin.to_vec()).expect("Error decoding bundle from server");
                 if bndl.is_administrative_record() {
                     eprintln!("[!] Handling of administrative records not yet implemented!");
                 } else if handle_incoming_bundle(&bndl, rest.clone(), verbose).is_err() && verbose {
