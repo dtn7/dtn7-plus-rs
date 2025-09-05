@@ -10,6 +10,7 @@ use serde::{de, Deserialize, Deserializer, Serialize};
 enum LocationType {
     LatLon = 1,
     Human = 2,
+    #[allow(clippy::upper_case_acronyms)]
     WFW = 3,
     XY = 4,
 }

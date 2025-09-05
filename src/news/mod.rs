@@ -360,6 +360,7 @@ impl Default for NewsBuilder {
     }
 }
 /// Create a new news bundle for DTN addressing scheme
+#[allow(clippy::too_many_arguments)]
 pub fn new_news(
     src_node_name: &str,
     dst_newsgroup: &str,
