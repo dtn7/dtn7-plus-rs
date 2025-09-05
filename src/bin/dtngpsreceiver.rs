@@ -1,47 +1,65 @@
-use bp7::*;
-use clap::{crate_authors, crate_version, Arg, App};
-use dtn7_plus::client::DtnClient;
-use dtn7_plus::location::*;
-use tungstenite::Message;
-use std::convert::TryFrom;
 use anyhow::{anyhow, bail};
 use bp7::dtntime::DtnTimeHelpers;
+use bp7::*;
+use clap::{crate_authors, crate_version, App, Arg};
+use dtn7_plus::client::DtnClient;
+use dtn7_plus::location::*;
+use std::convert::TryFrom;
+use tungstenite::Message;
 
-
-
-    fn handle_incoming_bundle(bndl: &Bundle, rest : Option<String>, verbose : bool) -> anyhow::Result<()> {
-        let cblock = bndl.extension_block_by_type(LOCATION_BLOCK).ok_or_else(|| anyhow!("no extension block"))?;
-        let loc_data = get_location_data(cblock)?;
-        if let LocationBlockData::Position(flags, pos) = loc_data {
-            if let Location::LatLon(coords) = pos {
-                let mut log_out = format!("{},{},\"{:?}\",{:?}", bndl.primary.creation_timestamp.dtntime().unix(), bndl.id(),/* bndl.primary.source.node_id().ok_or(anyhow!("no source address"))?,*/ coords, flags);
-                log_out.retain(|c| !c.is_whitespace());
-                if verbose {
-                    println!("{}", log_out);                        
-                }
-                if let Some(rest) = rest.clone() {
-                    let _res = attohttpc::get(format!("{}?gps={}", rest, log_out))
-                        .send()
-                        .expect("error sending position data")
-                        .text()?;
-                }
+fn handle_incoming_bundle(
+    bndl: &Bundle,
+    rest: Option<String>,
+    verbose: bool,
+) -> anyhow::Result<()> {
+    let cblock = bndl
+        .extension_block_by_type(LOCATION_BLOCK)
+        .ok_or_else(|| anyhow!("no extension block"))?;
+    let loc_data = get_location_data(cblock)?;
+    if let LocationBlockData::Position(flags, pos) = loc_data {
+        if let Location::LatLon(coords) = pos {
+            let mut log_out = format!(
+                "{},{},\"{:?}\",{:?}",
+                bndl.primary.creation_timestamp.dtntime().unix(),
+                bndl.id(),
+                // bndl.primary.source.node_id().ok_or(anyhow!("no source address"))?,
+                coords,
+                flags
+            );
+            log_out.retain(|c| !c.is_whitespace());
+            if verbose {
+                println!("{}", log_out);
             }
-            if let Location::XY(coords) = pos {
-                let mut log_out = format!("{},{},\"{:?}\",{:?}", bndl.primary.creation_timestamp.dtntime().unix(), bndl.id(),/* bndl.primary.source.node_id().ok_or(anyhow!("no source address"))?,*/ coords, flags);
-                log_out.retain(|c| !c.is_whitespace());
-                if verbose {
-                    println!("{}", log_out);                        
-                }
-                if let Some(rest) = rest {
-                    let _res = attohttpc::get(format!("{}?xy={}", rest, log_out))
-                        .send()
-                        .expect("error sending position data")
-                        .text()?;
-                }
+            if let Some(rest) = rest.clone() {
+                let _res = attohttpc::get(format!("{}?gps={}", rest, log_out))
+                    .send()
+                    .expect("error sending position data")
+                    .text()?;
             }
         }
-        Ok(())
+        if let Location::XY(coords) = pos {
+            let mut log_out = format!(
+                "{},{},\"{:?}\",{:?}",
+                bndl.primary.creation_timestamp.dtntime().unix(),
+                bndl.id(),
+                // bndl.primary.source.node_id().ok_or(anyhow!("no source address"))?,
+                coords,
+                flags
+            );
+            log_out.retain(|c| !c.is_whitespace());
+            if verbose {
+                println!("{}", log_out);
+            }
+            if let Some(rest) = rest {
+                let _res = attohttpc::get(format!("{}?xy={}", rest, log_out))
+                    .send()
+                    .expect("error sending position data")
+                    .text()?;
+            }
+        }
     }
+    Ok(())
+}
 
 fn main() -> anyhow::Result<()> {
     let matches = App::new("dtngpsreceiver")
@@ -62,7 +80,7 @@ fn main() -> anyhow::Result<()> {
                 .value_name("PORT")
                 .help("Local web port (default = 3000)")
                 .required(false)
-        )        
+        )
         .arg(
             Arg::new("verbose")
                 .short('v')
@@ -124,10 +142,10 @@ fn main() -> anyhow::Result<()> {
     loop {
         let msg = wscon.read_message()?;
         match msg {
-            Message::Text(txt) => { 
+            Message::Text(txt) => {
                 eprintln!("[!] Unexpected response: {}", txt);
-            break;
-        },
+                break;
+            }
             Message::Binary(bin) => {
                 let bndl: Bundle =
                     Bundle::try_from(bin).expect("Error decoding bundle from server");
@@ -136,7 +154,7 @@ fn main() -> anyhow::Result<()> {
                 } else if handle_incoming_bundle(&bndl, rest.clone(), verbose).is_err() && verbose {
                     eprintln!("[!] Not a position bundle: {}", bndl.id());
                 }
-            },
+            }
             Message::Ping(_) => {
                 if verbose {
                     eprintln!("[<] Ping")
@@ -153,9 +171,11 @@ fn main() -> anyhow::Result<()> {
                 }
                 break;
             }
-            Message::Frame(_) => if verbose {
-                eprintln!("[!] Received raw frame, not supported!")
-            },
+            Message::Frame(_) => {
+                if verbose {
+                    eprintln!("[!] Received raw frame, not supported!")
+                }
+            }
         }
     }
 
