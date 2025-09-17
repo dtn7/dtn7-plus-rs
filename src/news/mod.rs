@@ -360,6 +360,7 @@ impl Default for NewsBuilder {
     }
 }
 /// Create a new news bundle for DTN addressing scheme
+#[allow(clippy::too_many_arguments)]
 pub fn new_news(
     src_node_name: &str,
     dst_newsgroup: &str,
@@ -439,7 +440,7 @@ pub fn reply_news(
 
 #[cfg(test)]
 mod tests {
-    use crate::news::{new_news, NewsBundle};
+    use crate::news::{NewsBundle, new_news};
     use std::convert::TryFrom;
 
     use super::reply_news;

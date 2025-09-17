@@ -1,7 +1,7 @@
 mod block;
 mod loc;
 
-pub use block::{get_location_data, new_location_block, LocationBlockData, LOCATION_BLOCK};
+pub use block::{LOCATION_BLOCK, LocationBlockData, get_location_data, new_location_block};
 pub use loc::Location;
 
 use bitflags::bitflags;

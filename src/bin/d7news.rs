@@ -4,15 +4,15 @@ use std::{
 };
 
 use anyhow::Result;
-use clap::{crate_authors, crate_version, Parser};
-use dtn7_plus::news::{new_news, reply_news, NewsBundle};
+use clap::{ArgAction, Parser, crate_authors, crate_version};
+use dtn7_plus::news::{NewsBundle, new_news, reply_news};
 
 #[derive(Parser)]
 #[clap(version = crate_version!(), author = crate_authors!())]
 struct Opts {
     /// A level of verbosity, and can be used multiple times
-    #[clap(short, long, parse(from_occurrences))]
-    verbose: i32,
+    #[clap(short, long, action = ArgAction::Count)]
+    verbose: u8,
     #[clap(subcommand)]
     subcmds: SubCommand,
 }
@@ -49,7 +49,7 @@ struct PostCmd {
     hex: bool,
 }
 
-fn cmd_post(opts: PostCmd, _log_level: i32) -> Result<()> {
+fn cmd_post(opts: PostCmd, _log_level: u8) -> Result<()> {
     let msg = if opts.message == "-" {
         let mut raw_bytes: Vec<u8> = Vec::new();
         std::io::stdin()
@@ -100,7 +100,7 @@ struct ReplyCmd {
     hex: bool,
 }
 
-fn cmd_reply(opts: ReplyCmd, _log_level: i32) -> Result<()> {
+fn cmd_reply(opts: ReplyCmd, _log_level: u8) -> Result<()> {
     let msg = if opts.message == "-" {
         let mut raw_bytes: Vec<u8> = Vec::new();
         std::io::stdin()
@@ -133,7 +133,7 @@ struct ReadCmd {
     #[clap(short, long)]
     path: Option<String>,
 }
-fn cmd_read(opts: ReadCmd, _log_level: i32) -> Result<()> {
+fn cmd_read(opts: ReadCmd, _log_level: u8) -> Result<()> {
     let bytes = if let Some(hex_str) = opts.hex {
         bp7::helpers::unhexify(&hex_str)?
     } else {

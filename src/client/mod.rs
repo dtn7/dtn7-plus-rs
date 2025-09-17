@@ -14,9 +14,9 @@
 //! ```
 use bp7::{CreationTimestamp, EndpointID};
 use serde::{Deserialize, Serialize};
-use std::convert::TryInto;
+use std::{convert::TryInto, str::FromStr};
 use thiserror::Error;
-use tungstenite::{protocol::WebSocketConfig, WebSocket};
+use tungstenite::{WebSocket, http::Uri, protocol::WebSocketConfig};
 
 pub use tungstenite::protocol::Message;
 
@@ -114,7 +114,7 @@ impl DtnClient {
     where
         Stream: std::io::Read + std::io::Write,
     {
-        let ws_url = url::Url::parse(&format!("ws://{}:{}/ws", self.localhost, self.port))
+        let ws_url = Uri::from_str(&format!("ws://{}:{}/ws", self.localhost, self.port))
             .expect("Error constructing websocket url!");
         let (socket, _) =
             tungstenite::client::client(&ws_url, stream).expect("Error constructing websocket!");
@@ -129,7 +129,7 @@ impl DtnClient {
     where
         Stream: std::io::Read + std::io::Write,
     {
-        let ws_url = url::Url::parse(&format!("ws://{}:{}/ws", self.localhost, self.port))
+        let ws_url = Uri::from_str(&format!("ws://{}:{}/ws", self.localhost, self.port))
             .expect("Error constructing websocket url!");
         let (socket, _) = tungstenite::client::client_with_config(&ws_url, stream, Some(config))
             .expect("Error constructing websocket!");
@@ -162,7 +162,7 @@ where
     /// Server expects either
     /// - a valid bundle (in bundle mode)
     /// - a WsSendData struct as a cbor buffer (in data mode)
-    pub fn write_binary(&mut self, bin: &[u8]) -> anyhow::Result<()> {
+    pub fn write_binary(&mut self, bin: Vec<u8>) -> anyhow::Result<()> {
         self.socket.send(Message::binary(bin))?;
         Ok(())
     }
@@ -178,7 +178,7 @@ where
     pub fn read_text(&mut self) -> anyhow::Result<String> {
         let msg = self.socket.read()?;
         if let Message::Text(txt) = msg {
-            Ok(txt)
+            Ok(txt.as_str().to_string())
         } else {
             anyhow::bail!("Unexpected message type");
         }
@@ -187,7 +187,7 @@ where
     pub fn read_binary(&mut self) -> anyhow::Result<Vec<u8>> {
         let msg = self.socket.read()?;
         if let Message::Binary(bin) = msg {
-            Ok(bin)
+            Ok(bin.to_vec())
         } else {
             anyhow::bail!("Unexpected message type");
         }

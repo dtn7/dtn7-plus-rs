@@ -3,13 +3,14 @@ use core::fmt;
 use derive_try_from_primitive::TryFromPrimitive;
 use serde::de::{SeqAccess, Visitor};
 use serde::ser::{SerializeSeq, Serializer};
-use serde::{de, Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, de};
 
 #[derive(Debug, Clone, PartialEq, TryFromPrimitive)]
 #[repr(u8)]
 enum LocationType {
     LatLon = 1,
     Human = 2,
+    #[allow(clippy::upper_case_acronyms)]
     WFW = 3,
     XY = 4,
 }

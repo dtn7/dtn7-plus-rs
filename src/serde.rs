@@ -1,7 +1,7 @@
 pub mod base64_or_bytes {
     use std::borrow::Borrow;
 
-    use base64::{display::Base64Display, Engine};
+    use base64::{Engine, display::Base64Display};
     use serde::{Deserializer, Serializer};
 
     #[allow(clippy::ptr_arg)]
